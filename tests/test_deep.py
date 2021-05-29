@@ -218,11 +218,11 @@ class TestHelpers:
         assert deep_object(d, "c][0].dic['a_dict'][33]") == 'a_a_num_key_val'
         assert deep_object(d, "c][0].lis[0]") == 'a_list_val'
 
-        assert deep_object(a, "invalid_attr") == UNSET
-        assert deep_object(a, "[invalid_key]") == UNSET
+        assert deep_object(a, "invalid_attr") is UNSET
+        assert deep_object(a, "[invalid_key]") is UNSET
         with pytest.raises(TypeError):
             deep_object(c, "[invalid_idx]")
-        assert deep_object(d, "[invalid_key]") == UNSET
+        assert deep_object(d, "[invalid_key]") is UNSET
 
     def test_deep_object_set(self):
         class TstA:
@@ -246,7 +246,7 @@ class TestHelpers:
         assert deep_object(a, "dic['a_key']", new_value='a_dict_new_val') == 'a_dict_val'
         assert deep_object(a, 'dic["a_key"]') == 'a_dict_new_val'
 
-        assert deep_object(a, "dic[99]", new_value='new_dict_item_with_int_key') == UNSET
+        assert deep_object(a, "dic[99]", new_value='new_dict_item_with_int_key') is UNSET
         assert deep_object(a, "dic[99]") == 'new_dict_item_with_int_key'
 
         assert deep_object(a, "dic['a_dict']", {'a_key': 'a_a_dict_new_val', 33: 'a_a_num_key_val'}
@@ -297,17 +297,17 @@ class TestHelpers:
         d = dict()
 
         assert 123 not in d
-        assert deep_object(d, '[123]', new_value="int_key_val") == UNSET
+        assert deep_object(d, '[123]', new_value="int_key_val") is UNSET
         assert deep_object(d, '[123]') == "int_key_val"
         assert 123 in d
 
         assert "123" not in d
-        assert deep_object(d, '["123"]', new_value="str_key_val") == UNSET
+        assert deep_object(d, '["123"]', new_value="str_key_val") is UNSET
         assert deep_object(d, '["123"]') == "str_key_val"
         assert "123" in d
 
         assert (1, "2") not in d
-        assert deep_object(d, '[(1, "2")]', new_value="tuple_key_val") == UNSET
+        assert deep_object(d, '[(1, "2")]', new_value="tuple_key_val") is UNSET
         assert deep_object(d, '[(1, "2")]') == "tuple_key_val"
         assert (1, "2") in d
 

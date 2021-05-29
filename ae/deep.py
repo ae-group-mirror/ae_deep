@@ -2,27 +2,19 @@
 deep data structure search and replace
 ======================================
 
-This portion is pure python and has no namespace external
-dependencies.
+This portion is pure python and has no external dependencies, apart from the :mod:`ae.base` namespace portion.
 
-The functions :func:`deep_assignment`, :func:`deep_object`
-and :func:`deep_replace` are making your programmer life much
-easier for to change parts of any deeply nested data/object
-structures.
+Any parts of deeply nested data/object structure can be easily changed by the functions :func:`deep_assignment`,
+:func:`deep_object` and :func:`deep_replace`, without the need to specify large complex data paths.
 
 .. note::
-    Although these 3 functions are demonstrating the beauty
-    and flexibility of Python, they can create a lot of
-    side-effects and (wrongly used) even crash your
-    interpreter process.
+    Although these 3 functions are demonstrating the beauty and flexibility of Python, they can create a lot of
+    side-effects and (wrongly used) even crash your interpreter process.
 
-    We make no guarantees or warranties, either express
-    or implied - so please use them with care!
+    We make no guarantees or warranties, either express or implied - so please use them with care!
 
-:func:`deep_search` can be very useful for discovering
-internals of the Python language/libraries or for to
+:func:`deep_search` can be very useful for discovering internals of the Python language/libraries or for to
 debug and test your Python app.
-
 """
 import ast
 
@@ -32,7 +24,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 DeepDataType = Union[dict, list]                #: deep data structure root types
@@ -134,7 +126,7 @@ def deep_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET) ->
 
     obj_keys = list()
     get_func = getitem if isinstance(obj, (dict, list, str, tuple)) else getattr
-    while key_path and obj != UNSET:
+    while key_path and obj is not UNSET:
         idx = 0
         for char in key_path:
             if char in ('.', '[', ']'):     # == `char in '.[]'` - keep strings separate for speedup
@@ -158,7 +150,7 @@ def deep_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET) ->
             char = key_path[idx: idx + 1]
 
         if idx >= len(key_path):
-            if new_value != UNSET:
+            if new_value is not UNSET:
                 deep_assignment(obj_keys, new_value)
             break
 
@@ -204,15 +196,15 @@ def deep_replace(data: DeepDataType, replace_with: Callable[[DeepDataPath, Any, 
     for key, value in items:
         obj_keys.append((data, key))
         new_value = replace_with(obj_keys, key, value)
-        if new_value != UNSET:
+        if new_value is not UNSET:
             replace_items.append((key, new_value))
         elif isinstance(value, (dict, list)):
             deep_replace(value, replace_with, immutable_types=immutable_types, obj_keys=obj_keys)
         elif isinstance(value, immutable_types):
             type_converter = type(value)
             if type_converter is str:   # for string immutables: prevent recursion; ensure correct conversion from list
-                corr_immutable_types = tuple([typ for typ in immutable_types if typ is not str])
-                type_converter = lambda v: "".join(v)   # type: ignore # noqa: E731
+                corr_immutable_types = tuple(typ for typ in immutable_types if typ is not str)
+                type_converter = lambda _val: "".join(_val)     # type: ignore # noqa: E731
             else:
                 corr_immutable_types = immutable_types
             value = list(value)

@@ -2,19 +2,19 @@
 deep data structure search and replace
 ======================================
 
-This portion is pure python and has no external dependencies, apart from the :mod:`ae.base` namespace portion.
+this portion is pure python and has no external dependencies, apart from the :mod:`ae.base` namespace portion.
 
-Any parts of deeply nested data/object structure can be easily changed by the functions :func:`deep_assignment`,
+any parts of deeply nested data/object structure can be easily changed by the functions :func:`deep_assignment`,
 :func:`deep_object` and :func:`deep_replace`, without the need to specify large complex data paths.
 
 .. note::
-    Although these 3 functions are demonstrating the beauty and flexibility of Python, they can create a lot of
+    although these 3 functions are demonstrating the beauty and flexibility of Python, they can create a lot of
     side-effects and (wrongly used) even crash your interpreter process.
 
-    We make no guarantees or warranties, either express or implied - so please use them with care!
+    we make no guarantees or warranties, either express or implied - so please use them with care!
 
-:func:`deep_search` can be very useful for discovering internals of the Python language/libraries or for to
-debug and test your Python app.
+:func:`deep_search` can be very useful for discovering internals of the Python language/libraries or to debug and test
+deep and complex data structures.
 """
 import ast
 
@@ -24,7 +24,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 
 DeepDataType = Union[dict, list]                #: deep data structure root types
@@ -35,24 +35,23 @@ def deep_assignment(obj_keys: DeepDataPath, new_value: Any):
     """ set sub-attribute/item with a mutable parent object to a new value within a deeply nested object/data structure.
 
     :param obj_keys:            list of (object, key) tuples identifying an element within a deeply nested data
-                                structure or object hierarchy. The root of the data/object structure is the object
-                                at list index 0 and the element to be changed is identified by the object and
-                                key in the last list item of this argument.
+                                structure or object hierarchy. the root of the data/object structure is the object at
+                                list index 0 and the element to be changed is identified by the object and key in the
+                                last list item of this argument.
 
-                                The referenced data structure can contain immutable objects (like tuples
-                                and str) which will be accordingly changed/replaced if affected/needed.
+                                the referenced data structure can contain immutable objects (like tuples and str) which
+                                will be accordingly changed/replaced if affected/needed.
 
-                                At least one object/element within the data structure has to be mutable,
-                                else a `ValueError` will be raised.
+                                at least one object/element within the data structure has to be mutable, else a
+                                `ValueError` will be raised.
 
-                                If the last list item references a single character in a (immutable) string then
-                                also the type of :paramref:`~deep_assignment.new_value` has to be string (in this
-                                case the single character will be replaced with the string in
-                                :paramref:`~deep_assignment.new_value`). If the types are not matching then
-                                a `TypeError` will be raised.
+                                if the last list item references a single character in a string then also the type of
+                                :paramref:`~deep_assignment.new_value` has to be string (in this case the single
+                                character will be replaced with the string in :paramref:`~deep_assignment.new_value`).
+                                if the types are not matching then a `TypeError` will be raised.
 
-    :param new_value:           value to be assigned to the element referenced by the last list item of the
-                                argument in :paramref:`~deep_assignment.obj_key_path`.
+    :param new_value:           value to be assigned to the element referenced by the last list item of the argument in
+                                :paramref:`~deep_assignment.obj_key_path`.
     """
     obj = None
 
@@ -82,8 +81,9 @@ def deep_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET) ->
     """ determine object in a deep nested object structure and optionally assign a new value to it.
 
     :param obj:                 start object to search in (and its sub-objects).
+
     :param key_path:            composed key string containing dict keys, tuple/list/str indexes and attribute names.
-                                The dot (`.`) character is identifying attribute names. `[` and `]` are enclosing
+                                the dot (`.`) character is identifying attribute names. `[` and `]` are enclosing
                                 index values, like shown in the following examples::
 
                                     class AClass:
@@ -106,15 +106,15 @@ def deep_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET) ->
                                     assert deep_object(d, '["a_str_key"]') == 1  # with high commas returns 1
                                     assert deep_object(d, '[a_str_key]') == 1    # same result/return value
 
-                                When the first part of the key path string is specifying an index you can also
+                                when the first part of the key path string is specifying an index you can also
                                 leave away the opening square bracket::
 
                                     assert deep_object(d, 'a_str_key]') == 1     # again - the same return 1
 
-    :param new_value:           optional new value - replacing the found object. The old value will be returned.
+    :param new_value:           optional new value - replacing the found object. the old value will be returned.
 
                                 .. note::
-                                    Tuples and strings that are embedding the found object will be automatically
+                                    tuples and strings that are embedding the found object will be automatically
                                     updated/replaced up in the data tree structure until a mutable object
                                     (list, dict or object) get found.
 
@@ -122,7 +122,7 @@ def deep_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET) ->
                                 or :data:`~ae.base.UNSET` if not found/exists (key path string is invalid).
     """
     if key_path[0] == '[':
-        key_path = key_path[1:]       # for to support fully specified indexes (starting with a square bracket)
+        key_path = key_path[1:]       # to support fully specified indexes (starting with a square bracket)
 
     obj_keys = list()
     get_func = getitem if isinstance(obj, (dict, list, str, tuple)) else getattr
@@ -164,23 +164,22 @@ def deep_replace(data: DeepDataType, replace_with: Callable[[DeepDataPath, Any, 
                  immutable_types: Tuple[Type, ...] = (tuple, ), obj_keys: Optional[DeepDataPath] = None):
     """ replace values within the passed (nested) data structure.
 
-    :param data:                list or dict data structure for to be deep searched and replaced. Can contain any
-                                combination of deep nested list/dict objects. The sub-structure-types dict and list
+    :param data:                list or dict data structure to be deep searched and replaced. can contain any
+                                combination of deep nested list/dict objects. the sub-structure-types dict and list
                                 as well as the immutable types specified by :paramref:`~deep_replace.immutable_types`
                                 will be recursively deep searched (top down) by passing their items one by one
                                 to the function specified by :paramref:`~deep_replace.replace_with`.
 
     :param replace_with:        called for each item with 3 arguments (data-struct-path, key in data-structure, value),
-                                and if the return value is not equal to :data:`UNSET` then it will be used for
-                                to overwrite the value in the data-structure.
+                                and if the return value is not equal to :data:`UNSET` then it will be used to overwrite
+                                the value in the data-structure.
 
-    :param immutable_types:     tuple of immutable iterable types which will be treated as replaceable items.
-                                Each of the immutable types passed in this tuple has to be convertible to a list object.
-                                By default only the items of a tuple are replaceable. For to also
-                                allow the replacement of single characters in a string pass the argument value
-                                `(tuple, str)` into this parameter.
+    :param immutable_types:     tuple of immutable iterable types, treated as replaceable items. each of the immutable
+                                types passed in this tuple has to be convertible to a list object. by default only the
+                                items of a tuple are replaceable. for to also allow the replacement of single characters
+                                in a string pass the argument value `(tuple, str)` into this parameter.
 
-    :param obj_keys:            used (internally only) for to pass the parent data-struct path in recursive calls.
+    :param obj_keys:            used (internally only) to pass the parent data-struct path in recursive calls.
     """
     if isinstance(data, dict):
         items = data.items()
@@ -223,33 +222,32 @@ def deep_search(obj: Any, found: Callable[[DeepDataPath, Any, Any], Any],
                 ) -> List[Tuple[DeepDataPath, Any, Any]]:
     """ search key and/or value within the passed (nested) object structure.
 
-    :param obj:                 root object to start the top-down deep search from, which can contain any
-                                combination of deep nested elements/objects. For each sub-element the
-                                callable passed into :paramref:`~deep_replace.found` will be
-                                executed. If the callable returns `True` then the data path, the key and the value
-                                will stored in a tuple and added to the search result list (finally returned
-                                to the caller of this function).
+    :param obj:                 root object to start the top-down deep search from, which can contain any combination of
+                                deep nested elements/objects. for each sub-element the callable passed into
+                                :paramref:`~deep_replace.found` will be executed. if the callable returns `True` then
+                                the data path, the key and the value will stored in a tuple and added to the search
+                                result list (finally returned to the caller of this function).
 
-                                For iterable objects of type dict/tuple/list the sub-items will be searched, as well
-                                as the attributes determined via the Python `dir` function. To reduce the number of
-                                items/attributes to be searched use the parameters :paramref:`~deep_search.skip_types`
-                                and/or :paramref:`~deep_search.skip_attr_prefix`.
+                                for iterable objects of type dict/tuple/list, the sub-items will be searched, as well as
+                                the attributes determined via the Python `dir` function. to reduce the number of items/
+                                attributes to be searched use the parameters :paramref:`~deep_search.skip_types` and/or
+                                :paramref:`~deep_search.skip_attr_prefix`.
 
     :param found:               called for each item with 3 arguments (data-struct-path, key in data-structure, value),
-                                and if the return value is `True` then the data/object path, the last key and value
-                                will be added as a new item to the returned list.
+                                and if the return value is `True` then the data/object path, the last key and value will
+                                be added as a new item to the returned list.
 
     :param skip_types:          tuple of types to skip from to be searched deeper (see specified default tuple in the
                                 parameter declaration).
 
-    :param skip_attr_prefix:    name prefix string for attribute(s) that has/have to be skipped from deeper search.
-                                By default the attributes which names starting with double-underscore characters will
-                                not deeper searched.
+    :param skip_attr_prefix:    name prefix string for attribute(s) that has/have to be skipped from deeper search. by
+                                default the attributes which names starting with double-underscore characters will not
+                                deeper searched.
 
-    :param obj_keys:            used (internally only) for to pass the parent data-struct path in recursive calls.
+    :param obj_keys:            used (internally only) to pass the parent data-struct path in recursive calls.
 
-    :return:                    list of tuples (data-struct-path, key, value); one tuple for each found item within
-                                the passed :paramref:`~deep_search.obj` argument.
+    :return:                    list of tuples (data-struct-path, key, value); one tuple for each found item within the
+                                passed :paramref:`~deep_search.obj` argument.
     """
     if isinstance(obj, skip_types):
         return []
@@ -260,7 +258,7 @@ def deep_search(obj: Any, found: Callable[[DeepDataPath, Any, Any], Any],
         items = enumerate(obj)              # type: ignore # we treat tuple/lists like dicts with the index as the key
     elif isinstance(obj, str):              # only needed if str got explicitly removed from skip_types
         items = enumerate(obj)              # type: ignore # we treat str types like dicts with the index as the key
-        skip_types += (str, )               # add str type skip in first deeper search for to prevent endless-recursion
+        skip_types += (str, )               # add str type skip in first deeper search to prevent endless-recursion
     else:
         items = [(k, getattr(obj, k)) for k in dir(obj) if not k.startswith(skip_attr_prefix)]  # type: ignore
 

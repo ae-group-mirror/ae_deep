@@ -24,7 +24,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.1.2'
+__version__ = '0.2.2'
 
 
 DeepDataType = Union[dict, list]                #: deep data structure root types

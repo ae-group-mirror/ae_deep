@@ -24,7 +24,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 
 DeepDataType = Union[dict, list]                #: deep data structure root types
@@ -176,7 +176,7 @@ def deep_replace(data: DeepDataType, replace_with: Callable[[DeepDataPath, Any, 
 
     :param immutable_types:     tuple of immutable iterable types, treated as replaceable items. each of the immutable
                                 types passed in this tuple has to be convertible to a list object. by default only the
-                                items of a tuple are replaceable. for to also allow the replacement of single characters
+                                items of a tuple are replaceable. to also allow the replacement of single characters
                                 in a string pass the argument value `(tuple, str)` into this parameter.
 
     :param obj_keys:            used (internally only) to pass the parent data-struct path in recursive calls.

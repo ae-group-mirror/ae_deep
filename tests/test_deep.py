@@ -294,7 +294,7 @@ class TestHelpers:
         assert deep_object(dic, "tup_item][1]") == 1
 
     def test_deep_object_dict_keys(self):
-        d = dict()
+        d = {}
 
         assert 123 not in d
         assert deep_object(d, '[123]', new_value="int_key_val") is UNSET

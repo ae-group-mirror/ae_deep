@@ -24,7 +24,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 
 
 DeepDataType = Union[dict, list]                #: deep data structure root types
@@ -124,7 +124,7 @@ def deep_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET) ->
     if key_path[0] == '[':
         key_path = key_path[1:]       # to support fully specified indexes (starting with a square bracket)
 
-    obj_keys = list()
+    obj_keys = []
     get_func = getitem if isinstance(obj, (dict, list, str, tuple)) else getattr
     while key_path and obj is not UNSET:
         idx = 0
@@ -189,9 +189,9 @@ def deep_replace(data: DeepDataType, replace_with: Callable[[DeepDataPath, Any, 
         raise ValueError(f"deep_replace(): invalid data type {type(data)} (allowed={DeepDataType})")
 
     if obj_keys is None:
-        obj_keys = list()
+        obj_keys = []
 
-    replace_items = list()
+    replace_items = []
     for key, value in items:
         obj_keys.append((data, key))
         new_value = replace_with(obj_keys, key, value)
@@ -263,9 +263,9 @@ def deep_search(obj: Any, found: Callable[[DeepDataPath, Any, Any], Any],
         items = [(k, getattr(obj, k)) for k in dir(obj) if not k.startswith(skip_attr_prefix)]  # type: ignore
 
     if obj_keys is None:
-        obj_keys = list()
+        obj_keys = []
 
-    found_items = list()
+    found_items = []
     for key, value in items:
         obj_keys.append((obj, key))
         if found(obj_keys, key, value):

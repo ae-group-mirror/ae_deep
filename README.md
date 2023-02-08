@@ -1,16 +1,16 @@
-<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project ae V0.2.85 -->
-<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project aedev_tpl_namespace_root V0.3.6 -->
-# deep 0.3.5
+<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project ae.ae V0.3.90 -->
+<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project aedev.tpl_namespace_root V0.3.12 -->
+# deep 0.3.6
 
 [![GitLab develop](https://img.shields.io/gitlab/pipeline/ae-group/ae_deep/develop?logo=python)](
     https://gitlab.com/ae-group/ae_deep)
 [![LatestPyPIrelease](
-    https://img.shields.io/gitlab/pipeline/ae-group/ae_deep/release0.2.5?logo=python)](
-    https://gitlab.com/ae-group/ae_deep/-/tree/release0.2.5)
+    https://img.shields.io/gitlab/pipeline/ae-group/ae_deep/release0.3.5?logo=python)](
+    https://gitlab.com/ae-group/ae_deep/-/tree/release0.3.5)
 [![PyPIVersions](https://img.shields.io/pypi/v/ae_deep)](
     https://pypi.org/project/ae-deep/#history)
 
->ae namespace module portion deep: deep data structure search and replace.
+>ae namespace module portion deep: easy handling of deeply nested data structures.
 
 [![Coverage](https://ae-group.gitlab.io/ae_deep/coverage.svg)](
     https://ae-group.gitlab.io/ae_deep/coverage/index.html)
@@ -71,5 +71,5 @@ https://gitlab.com/ae-group/ae_deep/-/blob/develop/CONTRIBUTING.rst)
 
 information on the features and usage of this portion are available at
 [ReadTheDocs](
-https://ae.readthedocs.io/en/latest/_autosummary/ae.deep.html#module-ae.deep
+https://ae.readthedocs.io/en/latest/_autosummary/ae.deep.html
 "ae_deep documentation").

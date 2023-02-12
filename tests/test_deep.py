@@ -4,15 +4,51 @@ from copy import deepcopy
 
 import pytest
 
-from typing import cast
-
 from ae.base import UNSET
+# noinspection PyProtectedMember
 from ae.deep import (
-    DEFAULT_LEAF_TYPES, key_list_object, key_value, next_key_of_path, object_items,
+    DEFAULT_LEAF_TYPES, _value_filter_default, key_list_object, key_value, next_key_of_path, object_items,
     replace_object, key_path_string, key_path_object, pop_object, deep_replace, deep_search, deep_update)
 
 
 class TestHelpers:
+    def test_value_filter_default_callable(self):
+        def _test_func():
+            pass
+
+        class _TestClass:
+            def _test_method(self):
+                pass
+
+            @classmethod
+            def _test_class_method(cls):
+                pass
+
+            @staticmethod
+            def _test_static_method():
+                pass
+
+        assert _value_filter_default(_test_func, [])
+        assert _value_filter_default(_TestClass()._test_method, [])
+        assert _value_filter_default(_TestClass._test_class_method, [])
+        assert _value_filter_default(_TestClass()._test_static_method, [])
+
+    def test_value_filter_default_real_types(self):
+        assert _value_filter_default(None, [])
+        assert _value_filter_default(1.23, [])
+        assert _value_filter_default(123, [])
+        assert _value_filter_default(pytest, [])
+
+    def test_value_filter_default_recursion(self):
+        str_obj = "abc"
+        class _TestClass:
+            pass
+        tst_cls = _TestClass()
+
+        assert _value_filter_default(str_obj, [(str_obj, 0)])
+        assert _value_filter_default(tst_cls, [(tst_cls, 'attr')])
+        assert _value_filter_default(tst_cls, [(tst_cls, 'attr'), (str_obj, 1)])
+
     def test_key_list_object_data(self):
         assert key_list_object([]) is UNSET
         assert key_list_object([({}, 'any not existing key')]) is UNSET
@@ -368,6 +404,7 @@ class TestHelpers:
         dic = {'s': "str_val", 'i': 69}
         assert object_items(dic) == [('s', "str_val"), ('i', 69)]
         assert not object_items(dic, leaf_types=DEFAULT_LEAF_TYPES + (dict, ))
+        assert object_items(dic, key_filter=lambda key: key == 's') == [('i', 69)]
 
     def test_object_items_list(self):
         lis = ["a", 6.9, (96, )]
@@ -616,21 +653,32 @@ class TestDeepFunctions:
         assert data['a_dict']['b_dict']['search_key'] == "replaced_key_value"
         assert data['a_dict']['b_list'][2] == sub_lst[2] == "replaced_key_value"
 
-        deep_replace(data, lambda _p, _k, _v: "WIPED")
-        for _k, _v in data.items():
-            assert _v == "WIPED"
-
         lst = [69]
         deep_replace(lst, lambda _p, _k, _v: "replacing all", leaf_types=())
         assert lst == ["replacing all"]
 
+        # test recursion prevention
+        deep_replace(data, lambda _p, _k, _v: UNSET, leaf_types=())
         deep_replace(lst, lambda _p, _k, _v: UNSET, leaf_types=())
-        deep_replace([69], lambda _p, _k, _v: UNSET, leaf_types=())         # deep_replace() prevents int RecursionError
-        deep_replace(["t"], lambda _p, _k, _v: UNSET, leaf_types=())        # deep_replace() prevents str RecursionError
+        deep_replace([69], lambda _p, _k, _v: UNSET, leaf_types=())
+        deep_replace(["t"], lambda _p, _k, _v: UNSET, leaf_types=())
+
+        deep_replace(data, lambda _p, _k, _v: UNSET, key_filter=lambda key: True)
+        deep_replace(data, lambda _p, _k, _v: UNSET, key_filter=lambda key: False)
+        deep_replace([69], lambda _p, _k, _v: UNSET, key_filter=lambda key: False)
+
+        deep_replace(data, lambda _p, _k, _v: UNSET, value_filter=lambda val, obj_keys: True)
+        deep_replace(data, lambda _p, _k, _v: UNSET, value_filter=lambda val, obj_keys: False)
+        deep_replace([69], lambda _p, _k, _v: UNSET, value_filter=lambda val, obj_keys: False)
+
+        # test total overwrite
+        deep_replace(data, lambda _p, _k, _v: "WIPED")
+        for _k, _v in data.items():
+            assert _v == "WIPED"
 
     def test_deep_replace_exception(self):
         with pytest.raises(ValueError):
-            deep_replace(cast(list, ('tuple', 'are', 'only', 'replaced', 'in', 'deeper', 'data')),
+            deep_replace(('tuple', 'are', 'only', 'replaced', 'in', 'deeper', 'data'),
                          lambda _p, _k, _v: "replacing all")
 
         with pytest.raises(AttributeError):     # because int attributes cannot be replaced
@@ -679,6 +727,18 @@ class TestDeepFunctions:
         obj_key = [(dic, 'str_item')]
         assert deep_search(dic, lambda p, k, v: p == obj_key) == \
                [(obj_key, 'str_item', str_val)]
+        assert deep_search(dic, lambda p, k, v: p == obj_key, leaf_types=()) == \
+               [(obj_key, 'str_item', str_val)]
+        assert deep_search(dic, lambda p, k, v: p == obj_key, leaf_types=(str, )) == \
+               [(obj_key, 'str_item', str_val)]
+        assert deep_search(dic, lambda p, k, v: p == obj_key, key_filter=lambda key: False) == \
+               [(obj_key, 'str_item', str_val)]
+        assert deep_search(dic, lambda p, k, v: p == obj_key, key_filter=lambda key: True) == \
+               []
+        assert deep_search(dic, lambda p, k, v: p == obj_key, value_filter=lambda val, obj_keys: False) == \
+               [(obj_key, 'str_item', str_val)]
+        assert deep_search(dic, lambda p, k, v: p == obj_key, value_filter=lambda val, obj_keys: True) == \
+               [(obj_key, 'str_item', str_val)]
 
         assert deep_search(dic, lambda p, k, v: k == 2) == \
                [([(dic, 'tup_item'), (dic['tup_item'], 2)], 2, 2.3)]
@@ -690,7 +750,9 @@ class TestDeepFunctions:
 
         obj_key = [(dic, 'str_item'), (dic['str_item'], 1)]
         assert deep_search(dic, lambda p, k, v: p == obj_key) == []  # single chars/bytes cannot be searched
-        assert deep_search(dic, lambda p, k, v: p == obj_key, leaf_types=(bytes, int, float, type)) == []
+        assert deep_search(dic, lambda p, k, v: p == obj_key, leaf_types=()) == []
+        assert deep_search(dic, lambda p, k, v: p == obj_key, key_filter=lambda key: False) == []
+        assert deep_search(dic, lambda p, k, v: p == obj_key, value_filter=lambda val, obj_keys: False) == []
 
     def test_deep_search_obj(self):
         str_val = "bCd"

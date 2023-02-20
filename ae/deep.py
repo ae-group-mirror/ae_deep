@@ -2,9 +2,9 @@
 easy handling of deeply nested data structures
 ==============================================
 
-this `ae` namespace portion is pure python, depends only on the Python runtime and the :mod:`ae.base` portion,
+this ``ae`` namespace portion is pure python, depends only on the Python runtime and the :mod:`ae.base` portion,
 and provides functions for to read, update and delete values of deep data structures. more helper function to
-prepare and convert data structures between different systems are available in the :mod:ae.sys_data` module.
+prepare and convert data structures between different systems are available in the :mod:`ae.sys_data` module.
 
 the root and node objects of deep data structures consisting of sequences (like list, tuple, ...), mappings
 (dict, ...) and data (class) objects. the leaf data objects are mostly simple types like int, float or string.
@@ -13,7 +13,7 @@ the root and node objects of deep data structures consisting of sequences (like 
 deep data structure example
 ---------------------------
 
-the following deep data structure is composed of the data class `Person`, a member list and two dictionaries::
+the following deep data structure is composed of the data class ``Person``, a member list and two dictionaries:
 
     >>> from dataclasses import dataclass
     >>> @dataclass
@@ -45,13 +45,14 @@ the following deep data structure is composed of the data class `Person`, a memb
     ...     'fun-club': club_data,  # ...
     ...     }
 
-putting the above data structures together, results in a deep data structure, in where `clubs_mapping` represents
+putting the above data structures together, results in a deep data structure, in where ``clubs_mapping`` represents
 the root object.
 
-the nodes of this deep data structure get referenced by `club_data`, `member_list`, `member_peter` and `member_hobbies.
+the nodes of this deep data structure get referenced by ``club_data``, ``member_list``, ``member_peter`` and
+``member_hobbies``.
 
-the fields `city`, `first_name` and the items `0` and `1` of `member_hobbies` (referencing the values `"dancing"`
-and `"music"`) are finally representing the leafs of this data structure::
+the fields ``city``, ``first_name`` and the items ``0`` and ``1`` of ``member_hobbies`` (referencing the values
+``"dancing"`` and ``"music"``) are finally representing the leafs of this data structure:
 
     >>> clubs_mapping == {
     ...     'fun-club': {
@@ -81,19 +82,19 @@ to get any node object or leaf value within a deep data structure, referenced by
 and a key path string in its :paramref:`~key_path_object.key_path` second argument.
 
 in the following example, the function :func:`key_path_object` determines the first name object from the
-`member_list` data node::
+``member_list`` data node:
 
     >>> key_path_object(member_list, '0.first_name')
     'Peter'
 
-to determine the same object via an object key list, use the function :func:`key_list_object`::
+to determine the same object via an object key list, use the function :func:`key_list_object`:
 
     >>> key_list_object([(member_list, 0),
     ...                  (member_peter, 'first_name')])
     'Peter'
 
 use the function :func:`key_path_string` to convert an object key list into a key path string. the following example
-determines the same ``first_name`` data leaf object with an object key list::
+determines the same ``first_name`` data leaf object with an object key list:
 
     >>> key_path = key_path_string([(member_list, 0),
     ...                             (member_peter, 'first_name')])
@@ -104,13 +105,13 @@ determines the same ``first_name`` data leaf object with an object key list::
 
 e.g. the more deep/complex key path string :code:`'fun-club.members.0.first_name.4'`, references the
 5th character of the leaf object "Peter", this time from the root node of the example
-data structure (`clubs_mapping`)::
+data structure (``clubs_mapping``):
 
     >>> key_path_object(clubs_mapping, 'fun-club.members.0.first_name.4')
     'r'
 
 the same char object, referenced above with a key path string, can also be referenced with an object key list, with
-the help of the function :func:`key_path_string`::
+the help of the function :func:`key_path_string`:
 
     >>> key_path_string([
     ...     (clubs_mapping, 'fun-club'),    # clubs_mapping['fun-club'] == club_data
@@ -145,7 +146,7 @@ the function :func:`deep_update` merges two deep data structures.
 
 to wipe any node/leaf from a deep data structure use the function :func:`pop_object`, which returns the old/removed
 node, item or attribute value. another option to remove objects from a data structure is to use :func:`deep_update`
-with `UNSET` values in its :paramref:`~deep_update.updating_obj` argument.
+with data:`~ae.base.UNSET` values in its :paramref:`~deep_update.updating_obj` argument.
 
 more details you find in the respective docstring of these functions.
 """
@@ -159,7 +160,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union, cast
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.3.7'
+__version__ = '0.3.8'
 
 
 DataLeafTypesType = Tuple[Type, ...]                        #: list/tuple of types of deep data leaves
@@ -233,7 +234,7 @@ def deep_replace(obj: Any, replace_with: ObjCheckCallable,                      
                                 to the callback function specified by :paramref:`~deep_replace.replace_with`.
 
     :param replace_with:        called for each item with the 3 arguments object key list, key in parent data-structure,
-                                and the object/value. any return value other than :data:`UNSET` will be used to
+                                and the object/value. any return value other than :data:`~ae.base.UNSET` will be used to
                                 overwrite the node/leaf object in the data-structure.
 
     :param leaf_types:          tuple of leaf types to skip from to be searched deeper. the default value of this
@@ -291,18 +292,18 @@ def deep_search(obj: Any, found: ObjCheckCallable,                              
 
     :param obj:                 root object to start the top-down deep search from, which can contain any combination of
                                 deep nested elements/objects. for each sub-element the callable passed into
-                                :paramref:`~deep_replace.found` will be executed. if the callable returns `True` then
+                                :paramref:`~deep_replace.found` will be executed. if the callable returns ``True`` then
                                 the data path, the key and the value will be stored in a tuple and added to the search
                                 result list (finally returned to the caller of this function).
 
                                 for iterable objects of type dict/tuple/list, the sub-items will be searched, as well as
-                                the attributes determined via the Python `dir` function. to reduce the number of items/
-                                attributes to be searched use the parameters :paramref:`~deep_search.leaf_types` and/or
-                                :paramref:`~deep_search.key_filter`.
+                                the attributes determined via the Python :func:`dir` function. to reduce the number of
+                                items/attributes to be searched use the parameters :paramref:`~deep_search.leaf_types`
+                                and/or :paramref:`~deep_search.key_filter`.
 
     :param found:               called for each item with 3 arguments (data-struct-path, key in data-structure, value),
-                                and if the return value is `True` then the data/object path, the last key and value will
-                                be added as a new item to the returned list.
+                                and if the return value is ``True`` then the data/object path, the last key and value
+                                will be added as a new item to the returned list.
 
     :param leaf_types:          tuple of leaf types to skip from to be searched deeper. the default value of this
                                 parameter is specified in the modul constant :data:`DEFAULT_LEAF_TYPES`.
@@ -393,7 +394,7 @@ def key_list_object(obj_keys: ObjKeysType) -> Any:
     :param obj_keys:            object key list.
 
     :return:                    recalculated object referenced by the first object and the keys of :paramref:`obj_keys`
-                                or `UNSET` if not found.
+                                or `~ae.base.UNSET` if not found.
 
     :raises:                    TypeError if key does not match the object type in any item of :paramref:`obj_keys`.
                                 ValueError if :paramref:`obj_keys` is not of type :data:`ObjKeysType`.
@@ -419,7 +420,7 @@ def key_path_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET
     :param obj:                 initial data object to search in (and its sub-objects).
 
     :param key_path:            composed key string containing dict keys, tuple/list/str indexes and object attribute
-                                names, separated by a dot (`.`) character, like shown in the following examples::
+                                names, separated by a dot character, like shown in the following examples:
 
                                 >>> class AClass:
                                 ...     str_attr_name_a = "a_attr_val"
@@ -437,7 +438,7 @@ def key_path_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET
                                 >>> assert key_path_object(b, 'b_obj.dict_attr.a_str_key') == 3
 
                                 the item key or index value of lists and dictionaries can alternatively be specified in
-                                Python syntax, enclosed  in `[` and `]`::
+                                Python syntax, enclosed  in [ and ]:
 
                                 >>> assert key_path_object(b, 'b_obj.dict_attr["a_str_key"]') == 3
                                 >>> assert key_path_object(b, 'b_obj.dict_attr[\\'a_str_key\\']') == 3
@@ -445,7 +446,7 @@ def key_path_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET
                                 >>> assert key_path_object(b, 'b_obj.dict_attr["999"]') == "..str_key"
 
                                 only dict key strings that are not can be misinterpreted as number can be specified
-                                without the high commas (enclosing the key string), like e.g.::
+                                without the high commas (enclosing the key string), like e.g.:
 
                                 >>> assert key_path_object(b, 'b_obj.dict_attr[a_str_key]') == 3
 
@@ -526,7 +527,7 @@ def next_key_of_path(key_path: str) -> Tuple[Any, str, str]:
     if char in ('"', "'"):
         idx += 1
     for char in key_path[idx:]:
-        if char in KEY_PATH_SEPARATORS:  # ~== `char in '.[]'` - keep string characters separate in tuple for speedup
+        if char in KEY_PATH_SEPARATORS:  # ~== char in '.[]' - keep string characters separate in tuple for speedup
             break
         idx += 1
 
@@ -605,7 +606,7 @@ def pop_object(obj_keys: ObjKeysType) -> List[Any]:
                                 the referenced data structure can contain even immutable node objects (like tuples)
                                 which will be accordingly changed/replaced if affected/needed. for that
                                 at least one object/element above the immutable object in the deep data structure has
-                                to be mutable, else a `ValueError` will be raised.
+                                to be mutable, else a :class:`ValueError` will be raised.
 
     :return:                    list of deleted values or UNSET if not found.
 
@@ -655,7 +656,7 @@ def replace_object(obj_keys: ObjKeysType, new_value: Any) -> int:
                                 which will be accordingly changed/replaced if affected/needed.
 
                                 at least one object/element, situated above of replaced data object within the deep data
-                                structure, has to be mutable, else a `ValueError` will be raised.
+                                structure, has to be mutable, else a :class:`ValueError` will be raised.
 
     :param new_value:           value to be assigned to the element referenced by the last list item of the argument in
                                 :paramref:`~replace_object.obj_keys`.
@@ -664,7 +665,7 @@ def replace_object(obj_keys: ObjKeysType, new_value: Any) -> int:
                                 or 0 of the changed data object is mutable.
 
     :raises:                    ValueError if no immutable parent object got found or if the object key list in the
-                                :paramref:`obj_keys' argument is empty.
+                                :paramref:`obj_keys` argument is empty.
     """
     mutable_offset = 0
     for obj, key_or_attr in reversed(obj_keys):

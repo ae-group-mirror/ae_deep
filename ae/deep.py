@@ -160,7 +160,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union, cast
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.3.8'
+__version__ = '0.3.9'
 
 
 DataLeafTypesType = Tuple[Type, ...]                        #: list/tuple of types of deep data leaves
@@ -189,7 +189,7 @@ def _key_filter_default(index_or_attr: KeyType) -> bool:
         * magic (two leading underscore characters) or internal (one leading underscore) attributes
           (e.g. via WindowSDL._WindowBase__instance).
         * self or doubly-linked data structures (e.g. :attr:`kivy.app.App.proxy_ref` (self-linked) or
-          :attr:`ae.kivy_app.KivyMainApp.framework_app` and :attr:`ae.kivy_app.FrameworkApp.main_app`).
+          :attr:`ae.kivy.apps.KivyMainApp.framework_app` and :attr:`ae.kivy.apps.FrameworkApp.main_app`).
         * back-linked data structures, like e.g. the :attr:`~kivy.uix.widget.Widget.parent` property in
           Kivy widget trees.
     """

@@ -5,9 +5,8 @@ from copy import deepcopy
 import pytest
 
 from ae.base import UNSET
-# noinspection PyProtectedMember
 from ae.deep import (
-    DEFAULT_LEAF_TYPES, _value_filter_default, key_list_object, key_value, next_key_of_path, object_items,
+    DEFAULT_LEAF_TYPES, value_filter_default, key_list_object, key_value, next_key_of_path, object_items,
     replace_object, key_path_string, key_path_object, pop_object, deep_replace, deep_search, deep_update)
 
 
@@ -28,16 +27,16 @@ class TestHelpers:
             def _test_static_method():
                 pass
 
-        assert _value_filter_default(_test_func, [])
-        assert _value_filter_default(_TestClass()._test_method, [])
-        assert _value_filter_default(_TestClass._test_class_method, [])
-        assert _value_filter_default(_TestClass()._test_static_method, [])
+        assert value_filter_default(_test_func, [])
+        assert value_filter_default(_TestClass()._test_method, [])
+        assert value_filter_default(_TestClass._test_class_method, [])
+        assert value_filter_default(_TestClass()._test_static_method, [])
 
     def test_value_filter_default_real_types(self):
-        assert _value_filter_default(None, [])
-        assert _value_filter_default(1.23, [])
-        assert _value_filter_default(123, [])
-        assert _value_filter_default(pytest, [])
+        assert value_filter_default(None, [])
+        assert value_filter_default(1.23, [])
+        assert value_filter_default(123, [])
+        assert value_filter_default(pytest, [])
 
     def test_value_filter_default_recursion(self):
         str_obj = "abc"
@@ -45,9 +44,9 @@ class TestHelpers:
             pass
         tst_cls = _TestClass()
 
-        assert _value_filter_default(str_obj, [(str_obj, 0)])
-        assert _value_filter_default(tst_cls, [(tst_cls, 'attr')])
-        assert _value_filter_default(tst_cls, [(tst_cls, 'attr'), (str_obj, 1)])
+        assert value_filter_default(str_obj, [(str_obj, 0)])
+        assert value_filter_default(tst_cls, [(tst_cls, 'attr')])
+        assert value_filter_default(tst_cls, [(tst_cls, 'attr'), (str_obj, 1)])
 
     def test_key_list_object_data(self):
         assert key_list_object([]) is UNSET

@@ -13,7 +13,7 @@ the root and node objects of deep data structures consisting of sequences (like 
 deep data structure example
 ---------------------------
 
-the following deep data structure is composed of the data class ``Person``, a member list and two dictionaries:
+the following deep data structure is composed of the data class ``Person``, a member list and two dictionaries::
 
     >>> from dataclasses import dataclass
     >>> @dataclass
@@ -22,9 +22,9 @@ the following deep data structure is composed of the data class ``Person``, a me
     ...     hobbies: List[str]
 
     >>> member_hobbies = [
-    ...         "dancing",
-    ...         "music",            # ...
-    ...         ]
+    ...     "dancing",
+    ...     "music",                # ...
+    ...     ]
 
     >>> member_peter = Person(
     ...     first_name="Peter",
@@ -160,7 +160,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union, cast
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.3.10'
+__version__ = '0.3.11'
 
 
 DataLeafTypesType = Tuple[Type, ...]                        #: list/tuple of types of deep data leaves
@@ -589,7 +589,7 @@ def object_item_value(obj: Any, key: Any, default_value: Any = UNSET) -> Any:
     """
     get_func = getitem if isinstance(obj, (Mapping, Sequence, str)) else getattr
     try:
-        return get_func(obj, key)       # type: ignore
+        return get_func(obj, key)
     except (AttributeError, IndexError, KeyError, ValueError):
         return default_value
 

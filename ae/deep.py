@@ -160,7 +160,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union, cast
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.3.11'
+__version__ = '0.3.12'
 
 
 DataLeafTypesType = Tuple[Type, ...]                        #: list/tuple of types of deep data leaves
@@ -180,6 +180,9 @@ KEY_PATH_SEPARATORS = ('.', '[', ']')                       #: separator charact
 def key_filter_default(index_or_attr: KeyType) -> bool:
     """ default key filter callable, returning True to filter out key/index/attribute id/name.
 
+    :param index_or_attr:       index, attribute or key in an object, list, dict or any other container/data structure.
+    :return:                    True if the index or attribute get skipped/filtered on deep search/replace.
+
     this function is the default value for the :paramref:`~object_items.key_filter` parameter of the deep scanning
     and traversing functions :func:`deep_replace`, :func:`deep_search`, :func:`deep_update` and :func:`object_items`.
 
@@ -194,8 +197,8 @@ def key_filter_default(index_or_attr: KeyType) -> bool:
           (e.g. via WindowSDL._WindowBase__instance).
     """
     str_key = str(index_or_attr)
-    return (str_key in ('canvas', 'global_variables', 'opener', 'parent', 'proxy_ref',
-                        'root', 'root_window', 'self', 'texture')   # tap_widget ...
+    return (str_key in ('canvas', 'canvas_viewport', 'global_variables', 'keyboard', 'opener', 'parent', 'proxy_ref',
+                        'root', 'root_window', 'self', 'texture', 'window')  # tap_widget ...
             or str_key.startswith('_')
             or str_key.endswith('_app')     # main_app, framework_app, fw_app, ...
             )
@@ -203,6 +206,13 @@ def key_filter_default(index_or_attr: KeyType) -> bool:
 
 def value_filter_default(value: Any, obj_keys: ObjKeysType) -> bool:
     """ default item value filter callable, returning True to filter out values to be scanned deeper.
+
+    :param value:               value to check for to be filtered out.
+    :param obj_keys:            list of tuples of object and attribute-or-key-in-the-object, to filter out a value
+                                identical to one of the objects in this argument.
+    :return:                    True if the specified value is either a base type (like float, int, str, Callable, ...)
+                                or is one of the objects specified in the :paramref:`~value_filter_default.obj_keys`
+                                argument, else False.
 
     this function is the default value for the :paramref:`~deep_replace.value_filter` parameter of the deep scanning
     and traversing functions :func:`deep_replace`, :func:`deep_search` and :func:`deep_update`.
@@ -215,7 +225,7 @@ def value_filter_default(value: Any, obj_keys: ObjKeysType) -> bool:
     return (
         not value
         or isinstance(value, (float, int, str, type(None), Callable, ModuleType))  # type: ignore # Callable ok Py>=3.8
-        or any(obj is value for obj, _ in obj_keys)
+        or any(obj is value for obj, _key_or_attr in obj_keys)
     )
 
 
@@ -239,12 +249,14 @@ def deep_replace(obj: Any, replace_with: ObjCheckCallable,  # pylint: disable=to
     :param leaf_types:          tuple of leaf types to skip from to be searched deeper. the default value of this
                                 parameter is specified in the modul constant :data:`DEFAULT_LEAF_TYPES`.
 
-    :param key_filter:          called for each sub-item/-attribute of the data structure specified by :paramref:`obj`.
+    :param key_filter:          called for each sub-item/-attribute of the data structure specified by the argument
+                                :paramref:`~deep_replace.obj`.
                                 return True for item-key/item-index/attribute-name to be filtered out. by default all
                                 attribute/key names starting with an underscore character will be filtered out
                                 (see default callable :func:`key_filter_default`).
 
-    :param value_filter:        called for each sub-item/-attribute of the data structure specified by :paramref:`obj`.
+    :param value_filter:        called for each sub-item/-attribute of the data structure specified by
+                                :paramref:`~deep_replace.obj` argument.
                                 return True for items/attributes values to be filtered out. by default empty values,
                                 excluded values (see :data:`EXCLUDED_VALUE_TYPES`) and already scanned objects will be
                                 filtered out (see default callable :func:`value_filter_default`).
@@ -254,12 +266,16 @@ def deep_replace(obj: Any, replace_with: ObjCheckCallable,  # pylint: disable=to
     :return:                    the number of levels of the first mutable data objects above the changed data object,
                                 or 0 of the changed data object is mutable.
 
-    :raises:                    ValueError if no mutable parent object is in data structure (:paramref:`obj`).
-    :raises:                    AttributeError e.g. if :paramref:`obj` is of type int, and `int` is missing in
-                                :paramref:`leaf_types`.
+    :raises:                    ValueError if no mutable parent object is in the data structure (specified in the
+                                :paramref:`~deep_replace.obj` argument).
+
+    :raises:                    AttributeError e.g. if :paramref:`~deep_replace.obj` is of type int, and `int` is
+                                missing in the :paramref:`~deep_replace.leaf_types` argument.
+
     .. note::
         make sure to prevent overwrites on internal objects of the Python runtime, on some of them the Python
         interpreter could even crash (e.g. with: exit code 134 (interrupted by signal 6: SIGABRT)).
+
     """
     if obj_keys is None:
         obj_keys = []

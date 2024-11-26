@@ -1,16 +1,16 @@
-<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project ae.ae V0.3.94 -->
+<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project ae.ae V0.3.95 -->
 <!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project aedev.tpl_namespace_root V0.3.14 -->
-# deep 0.3.11
+# deep 0.3.12
 
 [![GitLab develop](https://img.shields.io/gitlab/pipeline/ae-group/ae_deep/develop?logo=python)](
     https://gitlab.com/ae-group/ae_deep)
 [![LatestPyPIrelease](
-    https://img.shields.io/gitlab/pipeline/ae-group/ae_deep/release0.3.10?logo=python)](
-    https://gitlab.com/ae-group/ae_deep/-/tree/release0.3.10)
+    https://img.shields.io/gitlab/pipeline/ae-group/ae_deep/release0.3.11?logo=python)](
+    https://gitlab.com/ae-group/ae_deep/-/tree/release0.3.11)
 [![PyPIVersions](https://img.shields.io/pypi/v/ae_deep)](
     https://pypi.org/project/ae-deep/#history)
 
->ae_deep module 0.3.11.
+>ae_deep module 0.3.12.
 
 [![Coverage](https://ae-group.gitlab.io/ae_deep/coverage.svg)](
     https://ae-group.gitlab.io/ae_deep/coverage/index.html)

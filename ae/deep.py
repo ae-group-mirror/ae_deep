@@ -160,7 +160,7 @@ from typing import Any, Callable, List, Optional, Tuple, Type, Union, cast
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.3.12'
+__version__ = '0.3.13'
 
 
 DataLeafTypesType = Tuple[Type, ...]                        #: list/tuple of types of deep data leaves
@@ -177,14 +177,11 @@ DEFAULT_LEAF_TYPES = (bytes, int, float, set, str, type)    #: default leaf type
 KEY_PATH_SEPARATORS = ('.', '[', ']')                       #: separator characters in key path string
 
 
-def key_filter_default(index_or_attr: KeyType) -> bool:
-    """ default key filter callable, returning True to filter out key/index/attribute id/name.
+def deepest_key_filter(index_or_attr: KeyType) -> bool:
+    """ deep reaching key filter callable, returning True to filter out key/index/attribute id/name.
 
     :param index_or_attr:       index, attribute or key in an object, list, dict or any other container/data structure.
     :return:                    True if the index or attribute get skipped/filtered on deep search/replace.
-
-    this function is the default value for the :paramref:`~object_items.key_filter` parameter of the deep scanning
-    and traversing functions :func:`deep_replace`, :func:`deep_search`, :func:`deep_update` and :func:`object_items`.
 
     if you are using your own filter callable you could call this function from it to prevent endless recursion,
     especially if your deep data structures contains circular- or self-referencing objects, like e.g.:
@@ -196,26 +193,21 @@ def key_filter_default(index_or_attr: KeyType) -> bool:
         * magic (two leading underscore characters) or internal (one leading underscore) attributes
           (e.g. via WindowSDL._WindowBase__instance).
     """
-    str_key = str(index_or_attr)
-    return (str_key in ('canvas', 'canvas_viewport', 'global_variables', 'keyboard', 'opener', 'parent', 'proxy_ref',
-                        'root', 'root_window', 'self', 'texture', 'window')  # tap_widget ...
-            or str_key.startswith('_')
-            or str_key.endswith('_app')     # main_app, framework_app, fw_app, ...
+    return (str(index_or_attr) in
+            ('canvas', 'canvas_viewport', 'global_variables', 'keyboard', 'opener', 'parent', 'proxy_ref',
+             'root', 'root_window', 'self', 'texture', 'window')
             )
 
 
-def value_filter_default(value: Any, obj_keys: ObjKeysType) -> bool:
-    """ default item value filter callable, returning True to filter out values to be scanned deeper.
+def deepest_value_filter(value: Any, obj_keys: ObjKeysType) -> bool:
+    """ deep reaching item value filter callable, returning True to filter out values to be scanned deeper.
 
     :param value:               value to check for to be filtered out.
     :param obj_keys:            list of tuples of object and attribute-or-key-in-the-object, to filter out a value
                                 identical to one of the objects in this argument.
     :return:                    True if the specified value is either a base type (like float, int, str, Callable, ...)
-                                or is one of the objects specified in the :paramref:`~value_filter_default.obj_keys`
+                                or is one of the objects specified in the :paramref:`~deepest_value_filter.obj_keys`
                                 argument, else False.
-
-    this function is the default value for the :paramref:`~deep_replace.value_filter` parameter of the deep scanning
-    and traversing functions :func:`deep_replace`, :func:`deep_search` and :func:`deep_update`.
 
     by using your own filter callable make sure to prevent endless processing or recursion, especially if your deep
     data structures contains circular- or self-referencing objects. e.g. some data value types have to be excluded
@@ -229,10 +221,47 @@ def value_filter_default(value: Any, obj_keys: ObjKeysType) -> bool:
     )
 
 
+def flattest_key_filter(index_or_attr: KeyType) -> bool:
+    """ key filter callable, returning True to filter out key/index/attribute id/name.
+
+    :param index_or_attr:       index, attribute or key in an object, list, dict or any other container/data structure.
+    :return:                    True if the index or attribute get skipped/filtered on deep search/replace.
+
+    this function is the default value for the :paramref:`~object_items.key_filter` parameter of the deep scanning
+    and traversing functions :func:`deep_replace`, :func:`deep_search`, :func:`deep_update` and :func:`object_items`.
+    """
+    str_key = str(index_or_attr)
+    return (str_key in ('canvas', 'canvas_viewport', 'global_variables', 'keyboard', 'opener', 'parent', 'proxy_ref',
+                        'root', 'root_window', 'self', 'texture', 'window')  # tap_widget ...
+            or str_key.startswith('_')
+            or str_key.endswith('_app')     # main_app, framework_app, fw_app, ...
+            )
+
+
+def flattest_value_filter(value: Any, obj_keys: ObjKeysType) -> bool:
+    """ default item value filter callable, returning True to filter out values to be scanned deeper.
+
+    :param value:               value to check for to be filtered out.
+    :param obj_keys:            list of tuples of object and attribute-or-key-in-the-object, to filter out a value
+                                identical to one of the objects in this argument.
+    :return:                    True if the specified value is either a base type (like float, int, str, Callable, ...)
+                                or is one of the objects specified in the :paramref:`~deepest_value_filter.obj_keys`
+                                argument, else False.
+
+    this function is the default value for the :paramref:`~deep_replace.value_filter` parameter of the deep scanning
+    and traversing functions :func:`deep_replace`, :func:`deep_search` and :func:`deep_update`.
+    """
+    return (
+        not value
+        or not isinstance(value, (dict, list, tuple))
+        or any(obj is value for obj, _key_or_attr in obj_keys)
+    )
+
+
 def deep_replace(obj: Any, replace_with: ObjCheckCallable,  # pylint: disable=too-many-arguments
                  leaf_types: DataLeafTypesType = DEFAULT_LEAF_TYPES,
-                 key_filter: KeyFilterCallable = key_filter_default,
-                 value_filter: ValueFilterCallable = value_filter_default,
+                 key_filter: KeyFilterCallable = flattest_key_filter,
+                 value_filter: ValueFilterCallable = flattest_value_filter,
                  obj_keys: Optional[ObjKeysType] = None) -> int:
     """ replace values (bottom up) within the passed (deeply nested) data structure.
 
@@ -253,13 +282,13 @@ def deep_replace(obj: Any, replace_with: ObjCheckCallable,  # pylint: disable=to
                                 :paramref:`~deep_replace.obj`.
                                 return True for item-key/item-index/attribute-name to be filtered out. by default all
                                 attribute/key names starting with an underscore character will be filtered out
-                                (see default callable :func:`key_filter_default`).
+                                (see default callable :func:`flattest_key_filter`).
 
     :param value_filter:        called for each sub-item/-attribute of the data structure specified by
                                 :paramref:`~deep_replace.obj` argument.
                                 return True for items/attributes values to be filtered out. by default empty values,
                                 excluded values (see :data:`EXCLUDED_VALUE_TYPES`) and already scanned objects will be
-                                filtered out (see default callable :func:`value_filter_default`).
+                                filtered out (see default callable :func:`flattest_value_filter`).
 
     :param obj_keys:            used (internally only) to pass the parent data-struct path in recursive calls.
 
@@ -299,8 +328,8 @@ def deep_replace(obj: Any, replace_with: ObjCheckCallable,  # pylint: disable=to
 
 def deep_search(obj: Any, found: ObjCheckCallable,  # pylint: disable=too-many-arguments
                 leaf_types: DataLeafTypesType = DEFAULT_LEAF_TYPES,
-                key_filter: KeyFilterCallable = key_filter_default,
-                value_filter: ValueFilterCallable = value_filter_default,
+                key_filter: KeyFilterCallable = flattest_key_filter,
+                value_filter: ValueFilterCallable = flattest_value_filter,
                 obj_keys: Optional[ObjKeysType] = None
                 ) -> List[Tuple[ObjKeysType, Any, Any]]:
     """ search key and/or value within the passed (deeply nested) data object structure.
@@ -326,12 +355,12 @@ def deep_search(obj: Any, found: ObjCheckCallable,  # pylint: disable=too-many-a
     :param key_filter:          called for each sub-item/-attribute of the data structure specified by :paramref:`obj`.
                                 return True for item-key/item-index/attribute-name to be filtered out. by default all
                                 attribute/key names starting with an underscore character will be filtered out
-                                (see default callable :func:`key_filter_default`).
+                                (see default callable :func:`deepest_key_filter`).
 
     :param value_filter:        called for each sub-item/-attribute of the data structure specified by :paramref:`obj`.
                                 return True for items/attributes values to be filtered out. by default empty values,
                                 excluded values (see :data:`EXCLUDED_VALUE_TYPES`) and already scanned objects will be
-                                filtered out (see default callable :func:`value_filter_default`).
+                                filtered out (see default callable :func:`deepest_value_filter`).
 
     :param obj_keys:            used (internally only) to pass the parent data-struct path in recursive calls.
 
@@ -358,8 +387,8 @@ def deep_search(obj: Any, found: ObjCheckCallable,  # pylint: disable=too-many-a
 
 def deep_update(obj: Any, updating_obj: Any,  # pylint: disable=too-many-arguments
                 leaf_types: DataLeafTypesType = DEFAULT_LEAF_TYPES,
-                key_filter: KeyFilterCallable = key_filter_default,
-                value_filter: ValueFilterCallable = value_filter_default,
+                key_filter: KeyFilterCallable = flattest_key_filter,
+                value_filter: ValueFilterCallable = flattest_value_filter,
                 obj_keys: Optional[ObjKeysType] = None
                 ):
     """ merge the :paramref:`updating_obj` data structure into the similar structured node object :paramref:`obj`.
@@ -375,12 +404,12 @@ def deep_update(obj: Any, updating_obj: Any,  # pylint: disable=too-many-argumen
     :param key_filter:          called for each sub-item/-attribute of the data structure specified by :paramref:`obj`.
                                 return True for item-key/item-index/attribute-name to be filtered out. by default all
                                 attribute/key names starting with an underscore character will be filtered out
-                                (see default callable :func:`key_filter_default`).
+                                (see default callable :func:`flattest_key_filter`).
 
     :param value_filter:        called for each sub-item/-attribute of the data structure specified by :paramref:`obj`.
                                 return True for items/attributes values to be filtered out. by default empty values,
                                 excluded values (see :data:`EXCLUDED_VALUE_TYPES`) and already scanned objects will be
-                                filtered out (see default callable :func:`value_filter_default`).
+                                filtered out (see default callable :func:`flattest_value_filter`).
 
     :param obj_keys:            used (internally only) to pass the parent data-struct path in recursive calls.
     """
@@ -556,7 +585,7 @@ def next_key_of_path(key_path: str) -> Tuple[Any, str, str]:
 
 def object_items(obj: Any,
                  leaf_types: DataLeafTypesType = DEFAULT_LEAF_TYPES,
-                 key_filter: KeyFilterCallable = key_filter_default
+                 key_filter: KeyFilterCallable = flattest_key_filter
                  ) -> ObjKeysType:
     """ determine the items of a data object, with mapping keys, sequence indexes or attribute names and its values.
 
@@ -568,7 +597,7 @@ def object_items(obj: Any,
     :param key_filter:          called for each sub-item/-attribute of the data structure specified by :paramref:`obj`.
                                 return True for item-key/item-index/attribute-name to be filtered out. by default all
                                 attribute/key names starting with an underscore character will be filtered out
-                                (see default callable :func:`key_filter_default`).
+                                (see default callable :func:`flattest_key_filter`).
 
     :return:                    items view of the data object specified in the :paramref:`obj` argument.
     """

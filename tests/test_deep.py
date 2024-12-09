@@ -5,13 +5,27 @@ from copy import deepcopy
 import pytest
 
 from ae.base import UNSET
+
 from ae.deep import (
-    DEFAULT_LEAF_TYPES, value_filter_default, key_list_object, key_value, next_key_of_path, object_items,
-    replace_object, key_path_string, key_path_object, pop_object, deep_replace, deep_search, deep_update)
+    DEFAULT_LEAF_TYPES, deepest_key_filter, deepest_value_filter, flattest_key_filter, flattest_value_filter,
+    key_list_object, key_value, next_key_of_path, object_items, replace_object, key_path_string, key_path_object,
+    pop_object, deep_replace, deep_search, deep_update)
 
 
 class TestHelpers:
-    def test_value_filter_default_callable(self):
+    def test_deepest_key_filter_arg_types(self):
+        assert not deepest_key_filter(1)            # int arg (e.g. for tuple/list/dict index/key)
+        assert not deepest_key_filter((1, 'b', ))   # tuple arg
+        assert not deepest_key_filter('abc')        # str arg
+        # noinspection PyTypeChecker
+        assert not deepest_key_filter(None)         # even None
+
+    def test_deepest_key_filter_excluded(self):
+        assert deepest_key_filter('canvas')         # kivy canvas
+        assert deepest_key_filter('self')
+        assert deepest_key_filter('window')
+
+    def test_deepest_value_filter_callable(self):
         def _test_func():
             pass
 
@@ -27,26 +41,54 @@ class TestHelpers:
             def _test_static_method():
                 pass
 
-        assert value_filter_default(_test_func, [])
-        assert value_filter_default(_TestClass()._test_method, [])
-        assert value_filter_default(_TestClass._test_class_method, [])
-        assert value_filter_default(_TestClass()._test_static_method, [])
+        assert deepest_value_filter(_test_func, [])
+        assert deepest_value_filter(_TestClass()._test_method, [])
+        assert deepest_value_filter(_TestClass._test_class_method, [])
+        assert deepest_value_filter(_TestClass()._test_static_method, [])
 
-    def test_value_filter_default_real_types(self):
-        assert value_filter_default(None, [])
-        assert value_filter_default(1.23, [])
-        assert value_filter_default(123, [])
-        assert value_filter_default(pytest, [])
+    def test_deepest_value_filter_real_types(self):
+        assert deepest_value_filter(None, [])
+        assert deepest_value_filter(1.23, [])
+        assert deepest_value_filter(123, [])
+        assert deepest_value_filter(pytest, [])
 
-    def test_value_filter_default_recursion(self):
+    def test_deepest_value_filter_recursion(self):
         str_obj = "abc"
         class _TestClass:
             pass
         tst_cls = _TestClass()
 
-        assert value_filter_default(str_obj, [(str_obj, 0)])
-        assert value_filter_default(tst_cls, [(tst_cls, 'attr')])
-        assert value_filter_default(tst_cls, [(tst_cls, 'attr'), (str_obj, 1)])
+        assert deepest_value_filter(str_obj, [(str_obj, 0)])
+        assert deepest_value_filter(tst_cls, [(tst_cls, 'attr')])
+        assert deepest_value_filter(tst_cls, [(tst_cls, 'attr'), (str_obj, 1)])
+
+    def test_flattest_key_filter(self):
+        assert not flattest_key_filter(1)            # int arg (e.g. for tuple/list/dict index/key)
+        assert not flattest_key_filter((1, 'b', ))   # tuple arg
+        assert not flattest_key_filter('abc')        # str arg
+        # noinspection PyTypeChecker
+        assert not flattest_key_filter(None)         # even None
+
+    def test_flattest_key_filter_excluded(self):
+        assert flattest_key_filter('canvas')         # kivy canvas
+        assert flattest_key_filter('self')
+        assert flattest_key_filter('window')
+
+    def test_flattest_value_filter_real_types(self):
+        assert flattest_value_filter(None, [])
+        assert flattest_value_filter(1.23, [])
+        assert flattest_value_filter(123, [])
+        assert flattest_value_filter(pytest, [])
+
+    def test_flattest_value_filter_recursion(self):
+        str_obj = "abc"
+        class _TestClass:
+            pass
+        tst_cls = _TestClass()
+
+        assert flattest_value_filter(str_obj, [(str_obj, 0)])
+        assert flattest_value_filter(tst_cls, [(tst_cls, 'attr')])
+        assert flattest_value_filter(tst_cls, [(tst_cls, 'attr'), (str_obj, 1)])
 
     def test_key_list_object_data(self):
         assert key_list_object([]) is UNSET
@@ -412,9 +454,16 @@ class TestHelpers:
         assert not object_items(lis, leaf_types=DEFAULT_LEAF_TYPES + (list, ))
 
     def test_object_items_namedtuple(self):
-        NamTup = namedtuple("Test", 'att1 att2')
-        nam_tup = NamTup(1, 2)
+        NamTup = namedtuple("TestInt", ['att1', 'att2'])
+        # noinspection PyArgumentList
+        nam_tup = NamTup(1, att2=2)
         assert object_items(nam_tup) == [(0, 1), (1, 2)]
+        assert not object_items(nam_tup, leaf_types=DEFAULT_LEAF_TYPES + (NamTup, ))
+
+        NamTup = namedtuple("TestChar", "att1 att2")
+        # noinspection PyArgumentList
+        nam_tup = NamTup("a", "b")
+        assert object_items(nam_tup) == [(0, "a"), (1, "b")]
         assert not object_items(nam_tup, leaf_types=DEFAULT_LEAF_TYPES + (NamTup, ))
 
     def test_object_items_object(self):

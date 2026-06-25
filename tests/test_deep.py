@@ -54,6 +54,7 @@ class TestHelpers:
 
     def test_deepest_value_filter_recursion(self):
         str_obj = "abc"
+
         class _TestClass:
             pass
         tst_cls = _TestClass()
@@ -82,6 +83,7 @@ class TestHelpers:
 
     def test_flattest_value_filter_recursion(self):
         str_obj = "abc"
+
         class _TestClass:
             pass
         tst_cls = _TestClass()
@@ -140,17 +142,17 @@ class TestHelpers:
         assert key_path_object(dic, "key.with[sep][deeper_key]") == "deep_val"
 
     def test_key_path_object_docstring_example(self):
-        class AClass:
+        class ClassA:
             """ child test class """
             str_attr_name_a = "a_attr_val"
             dict_attr = {'a_str_key': 3, 999: "value_with_int_key", '999': "..str_key"}
 
-        class BClass:
+        class ClassB:
             """ root test class """
             str_attr_name_b = "b_b_b_b_b"
-            b_obj = AClass()
+            b_obj = ClassA()
 
-        obj = BClass()
+        obj = ClassB()
         assert key_path_object(obj, 'str_attr_name_b') == "b_b_b_b_b"
         assert key_path_object(obj, 'b_obj.str_attr_name_a') == "a_attr_val"
         assert key_path_object(obj, 'b_obj.str_attr_name_a.5') == "r"  # 6th char of "a_attr_val"
@@ -327,7 +329,7 @@ class TestHelpers:
         assert key_path_object(a, 'dic.99') == "new_dict_item_with_int_key"
 
         assert key_path_object(a, 'dic["a_dict"]', {'a_key': "a_a_dict_new_val", 33: "a_a_num_key_val"}
-                           ) == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
+                               ) == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
         assert key_path_object(a, 'dic["a_dict"]["a_key"]', new_value="a_a_dict_newer_val") == "a_a_dict_new_val"
         assert key_path_object(a, 'dic["a_dict"]["a_key"]') == "a_a_dict_newer_val"
         assert key_path_object(b, 'a_att.dic["a_dict"]["a_key"]') == "a_a_dict_newer_val"
@@ -350,7 +352,7 @@ class TestHelpers:
         str_val = "bCd"
         deeper_tup = ("a", "b", "c")
         tup_val = (0, "1", 2.3, deeper_tup)
-        dic = dict(str_item=str_val, tup_item=tup_val)
+        dic: dict = dict(str_item=str_val, tup_item=tup_val)
 
         class Tst:
             """ test class """
@@ -434,6 +436,8 @@ class TestHelpers:
         assert next_key_of_path('\"\\c\"]') == ('\\c', ']', '')
         assert next_key_of_path('\\"\\c\\"]') == ('\\"\\c\\"', ']', '')
         assert next_key_of_path('\'c\']') == ('c', ']', '')
+
+        # noinspection PyInvalidEscapeSequence
         assert next_key_of_path('\'\c\']') == ('\\c', ']', '')
 
     def test_next_key_of_path_tuple(self):
@@ -578,7 +582,7 @@ class TestHelpers:
         str_val = "bCd"
         deeper_tup = ('a', 'b', 3)
         tup_val = (0, "1", 2.3, deeper_tup)
-        dic = dict(str_item=str_val, tup_item=tup_val)
+        dic: dict = dict(str_item=str_val, tup_item=tup_val)
 
         assert dic['str_item'] == str_val
         replace_object([(dic, 'str_item')], str_val)
@@ -632,7 +636,7 @@ class TestHelpers:
         str_val = "bCd"
         deeper_tup = ('a', 'b', 3)
         tup_val = (0, "1", 2.3, deeper_tup)
-        lst = ["a", str_val, tup_val]
+        lst: list = ["a", str_val, tup_val]
 
         replace_object([(lst, 0)], "b")
         assert lst[0] == "b"
@@ -674,7 +678,7 @@ class TestHelpers:
 class TestDeepFunctions:
     def test_deep_replace_data(self):
         sub_lst = ["b_list_0", "search_index_value", "search_key_value3"]
-        data = dict(
+        data: dict = dict(
             a_str="a_str",
             a_list=["a_list_0", "search_index_value", 2, dict(a_list_a="a_list_a_str", search_key="search_key_value1")],
             a_dict=dict(
@@ -736,7 +740,8 @@ class TestDeepFunctions:
         str_val = "AbCbE"
         deeper_tup = ("a", "b")
         tup_val = (3, "0120", 1, deeper_tup)
-        tst_list = [str_val, tup_val]
+        # noinspection PyTypeChecker
+        tst_list: str | tuple = [str_val, tup_val]
         tst_dict = dict(l=tst_list)
 
         # data keeps unchanged because str type not gets searched deeper onto char level

@@ -19,7 +19,7 @@ the following deep data structure is composed of the data class ``Person``, a me
     >>> @dataclass
     ... class Person:
     ...     first_name: str
-    ...     hobbies: List[str]
+    ...     hobbies: list[str]
 
     >>> member_hobbies = [
     ...     "dancing",
@@ -152,29 +152,27 @@ more details you find in the respective docstring of these functions.
 """
 import ast
 
-from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, MutableSequence, Sequence
 from operator import getitem
 from types import ModuleType
-from typing import Any, Callable, List, Optional, Tuple, Type, Union, cast
+from typing import Any, cast
 
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.3.13'
+__version__ = '0.3.14'
 
 
-DataLeafTypesType = Tuple[Type, ...]                        #: list/tuple of types of deep data leaves
-KeyType = Union[str, int, tuple]                            #: index/attribute types of deep data structures
+DataLeafTypesType = tuple[type, ...]                        #: list/tuple of types of deep data leaves
+KeyType = str | int | tuple                                 #: index/attribute types of deep data structures
 KeyFilterCallable = Callable[[KeyType], bool]               #: callable to filter item key/index and attribute names
-ObjKeysType = List[Tuple[Any, Any]]                         #: object key list of tuples of: object, key/index/attribute
+ObjKeysType = list[tuple[Any, Any]]                         #: object key list of tuples of: object, key/index/attribute
 ObjCheckCallable = Callable[[ObjKeysType, Any, Any], Any]   #: :func:`deep_replace`/:func:`deep_search` parameter type
 ValueFilterCallable = Callable[[Any, ObjKeysType], bool]
 
-MutableDataTypes = (MutableMapping, MutableSequence)        #: deep data structure node types
-
 DEFAULT_LEAF_TYPES = (bytes, int, float, set, str, type)    #: default leaf types of deep data structures
-
 KEY_PATH_SEPARATORS = ('.', '[', ']')                       #: separator characters in key path string
+MUTABLE_DATA_TYPES = (MutableMapping, MutableSequence)      #: deep data structure node types
 
 
 def deepest_key_filter(index_or_attr: KeyType) -> bool:
@@ -258,11 +256,12 @@ def flattest_value_filter(value: Any, obj_keys: ObjKeysType) -> bool:
     )
 
 
-def deep_replace(obj: Any, replace_with: ObjCheckCallable,  # pylint: disable=too-many-arguments
+def deep_replace(obj: Any,  # pylint: disable=too-many-arguments,too-many-positional-arguments
+                 replace_with: ObjCheckCallable,
                  leaf_types: DataLeafTypesType = DEFAULT_LEAF_TYPES,
                  key_filter: KeyFilterCallable = flattest_key_filter,
                  value_filter: ValueFilterCallable = flattest_value_filter,
-                 obj_keys: Optional[ObjKeysType] = None) -> int:
+                 obj_keys: ObjKeysType | None = None) -> int:
     """ replace values (bottom up) within the passed (deeply nested) data structure.
 
     :param obj:                 mutable sequence or mapping data structure to be deep searched and replaced. can contain
@@ -326,12 +325,12 @@ def deep_replace(obj: Any, replace_with: ObjCheckCallable,  # pylint: disable=to
     return max(mutable_offset - 1, 0)
 
 
-def deep_search(obj: Any, found: ObjCheckCallable,  # pylint: disable=too-many-arguments
+def deep_search(obj: Any, found: ObjCheckCallable,  # pylint: disable=too-many-arguments,too-many-positional-arguments
                 leaf_types: DataLeafTypesType = DEFAULT_LEAF_TYPES,
                 key_filter: KeyFilterCallable = flattest_key_filter,
                 value_filter: ValueFilterCallable = flattest_value_filter,
-                obj_keys: Optional[ObjKeysType] = None
-                ) -> List[Tuple[ObjKeysType, Any, Any]]:
+                obj_keys: ObjKeysType | None = None
+                ) -> list[tuple[ObjKeysType, Any, Any]]:
     """ search key and/or value within the passed (deeply nested) data object structure.
 
     :param obj:                 root object to start the top-down deep search from, which can contain any combination of
@@ -385,11 +384,11 @@ def deep_search(obj: Any, found: ObjCheckCallable,  # pylint: disable=too-many-a
     return ret
 
 
-def deep_update(obj: Any, updating_obj: Any,  # pylint: disable=too-many-arguments
+def deep_update(obj: Any, updating_obj: Any,  # pylint: disable=too-many-arguments,too-many-positional-arguments
                 leaf_types: DataLeafTypesType = DEFAULT_LEAF_TYPES,
                 key_filter: KeyFilterCallable = flattest_key_filter,
                 value_filter: ValueFilterCallable = flattest_value_filter,
-                obj_keys: Optional[ObjKeysType] = None
+                obj_keys: ObjKeysType | None = None
                 ):
     """ merge the :paramref:`updating_obj` data structure into the similar structured node object :paramref:`obj`.
 
@@ -458,23 +457,24 @@ def key_list_object(obj_keys: ObjKeysType) -> Any:
     return obj
 
 
-def key_path_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET) -> Any:
+def key_path_object(obj: Any, key_path: str, new_value: Any | None = UNSET) -> Any:
+    # noinspection GrazieInspection
     """ determine object in a deep nested data structure via a key path string, and optionally assign a new value to it.
 
-    :param obj:                 initial data object to search in (and its sub-objects).
+        :param obj:             initial data object to search in (and its sub-objects).
 
-    :param key_path:            composed key string containing dict keys, tuple/list/str indexes and object attribute
+        :param key_path:        composed key string containing dict keys, tuple/list/str indexes and object attribute
                                 names, separated by a dot character, like shown in the following examples:
 
-                                >>> class AClass:
+                                >>> class ClassA:
                                 ...     str_attr_name_a = "a_attr_val"
                                 ...     dict_attr = {'a_str_key': 3, 999: "value_with_int_key", '999': "..str_key"}
 
-                                >>> class BClass:
+                                >>> class ClassB:
                                 ...     str_attr_name_b = "b_b_b_b_b"
-                                ...     b_obj = AClass()
+                                ...     b_obj = ClassA()
 
-                                >>> b = BClass()
+                                >>> b = ClassB()
 
                                 >>> assert key_path_object(b, 'str_attr_name_b') == "b_b_b_b_b"
                                 >>> assert key_path_object(b, 'b_obj.str_attr_name_a') == "a_attr_val"
@@ -494,16 +494,16 @@ def key_path_object(obj: Any, key_path: str, new_value: Union[Any, None] = UNSET
 
                                 >>> assert key_path_object(b, 'b_obj.dict_attr[a_str_key]') == 3
 
-    :param new_value:           optional new value - replacing the found object. the old object value will be returned.
+        :param new_value:       optional new value - replacing the found object. the old object value will be returned.
 
                                 .. note::
                                     immutable objects, like tuples, that are embedding in :paramref:`obj` will be
                                     automatically updated/replaced up in the data tree structure until a mutable object
                                     (list, dict or object) get found.
 
-    :return:                    specified object/value (the old value if :paramref:`~key_path_object.new_value` got
+        :return:                specified object/value (the old value if :paramref:`~key_path_object.new_value` got
                                 passed) or :data:`~ae.base.UNSET` if not found/exists (key path string is invalid).
-    """
+        """
     if key_path[0] == '[':
         key_path = key_path[1:]       # to support fully specified indexes (starting with a square bracket)
 
@@ -556,7 +556,7 @@ def key_value(key_str: str) -> Any:
     return key
 
 
-def next_key_of_path(key_path: str) -> Tuple[Any, str, str]:
+def next_key_of_path(key_path: str) -> tuple[Any, str, str]:
     """ parse key_path to determine the next item key/index, the path separator and the rest of the key path.
 
     :param key_path:            data object key/index path string to parse.
@@ -605,6 +605,7 @@ def object_items(obj: Any,
         return []
 
     if isinstance(obj, Mapping):
+        # noinspection PyInvalidCast
         items = cast(ObjKeysType, obj.items())
     elif isinstance(obj, (Sequence, set, str)):
         items = enumerate(obj)                              # type: ignore # treat tuple/lists/set index as dict key
@@ -634,12 +635,13 @@ def object_item_value(obj: Any, key: Any, default_value: Any = UNSET) -> Any:
     """
     get_func = getitem if isinstance(obj, (Mapping, Sequence, str)) else getattr
     try:
+        # noinspection PyCallingNonCallable
         return get_func(obj, key)
     except (AttributeError, IndexError, KeyError, ValueError):
         return default_value
 
 
-def pop_object(obj_keys: ObjKeysType) -> List[Any]:
+def pop_object(obj_keys: ObjKeysType) -> list[Any]:
     """ delete sub-attribute/item of a data object.
 
     :param obj_keys:            list of (object, key) tuples identifying an element within a deeply nested data
@@ -660,7 +662,7 @@ def pop_object(obj_keys: ObjKeysType) -> List[Any]:
     """
     new_value = pop_value = UNSET
     for obj, key_or_attr in reversed(obj_keys):
-        if isinstance(obj, MutableDataTypes):
+        if isinstance(obj, MUTABLE_DATA_TYPES):
             if pop_value is UNSET:
                 pop_value = obj.pop(key_or_attr)
             else:
@@ -673,6 +675,7 @@ def pop_object(obj_keys: ObjKeysType) -> List[Any]:
             else:
                 if isinstance(obj, tuple):
                     new_value = (new_value, )
+                # noinspection PyUnresolvedReferences,PyTypeChecker
                 new_value = obj[:key_or_attr] + new_value + obj[key_or_attr + 1:]
             continue
 
@@ -683,6 +686,7 @@ def pop_object(obj_keys: ObjKeysType) -> List[Any]:
             else:
                 setattr(obj, key_or_attr, new_value)
 
+        # noinspection PyTypeChecker
         return pop_value
 
     raise ValueError(f"pop_object() error: no mutable object found in {obj_keys}")
@@ -713,7 +717,7 @@ def replace_object(obj_keys: ObjKeysType, new_value: Any) -> int:
     """
     mutable_offset = 0
     for obj, key_or_attr in reversed(obj_keys):
-        if isinstance(obj, MutableDataTypes):
+        if isinstance(obj, MUTABLE_DATA_TYPES):
             obj[key_or_attr] = new_value
         elif isinstance(obj, tuple):
             new_value = obj[:key_or_attr] + (new_value, ) + obj[key_or_attr + 1:]

@@ -1,16 +1,16 @@
-<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project ae.ae V0.3.95 -->
-<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project aedev.tpl_namespace_root V0.3.14 -->
-# deep 0.3.13
+<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project ae.ae v0.3.104 -->
+<!-- THIS FILE IS EXCLUSIVELY MAINTAINED by the project aedev.namespace_root_tpls v0.3.31 -->
+# deep 0.3.14
 
 [![GitLab develop](https://img.shields.io/gitlab/pipeline/ae-group/ae_deep/develop?logo=python)](
     https://gitlab.com/ae-group/ae_deep)
 [![LatestPyPIrelease](
-    https://img.shields.io/gitlab/pipeline/ae-group/ae_deep/release0.3.12?logo=python)](
-    https://gitlab.com/ae-group/ae_deep/-/tree/release0.3.12)
+    https://img.shields.io/gitlab/pipeline/ae-group/ae_deep/release0.3.14?logo=python)](
+    https://gitlab.com/ae-group/ae_deep/-/tree/release0.3.14)
 [![PyPIVersions](https://img.shields.io/pypi/v/ae_deep)](
     https://pypi.org/project/ae-deep/#history)
 
->ae_deep module 0.3.13.
+>ae namespace module portion deep: easy handling of deeply nested data structures.
 
 [![Coverage](https://ae-group.gitlab.io/ae_deep/coverage.svg)](
     https://ae-group.gitlab.io/ae_deep/coverage/index.html)
@@ -35,8 +35,8 @@
     https://pypi.org/project/ae-deep/#files)
 
 
-## installation
 
+## installation
 
 execute the following command to install the
 ae.deep module
@@ -54,13 +54,17 @@ following command in the root folder of this repository
 (ae_deep):
 
 ```shell script
-pip install -e .[dev]
+pip install --editable .[dev]
 ```
 
-the last command will install this module portion, along with the tools you need
-to develop and run tests or to extend the portion documentation. to contribute only to the unit tests or to the
-documentation of this portion, replace the setup extras key `dev` in the above command with `tests` or `docs`
-respectively.
+this command installs this module portion project
+along with the necessary tools to modify the source code,
+run unit tests, and build documentation. to install only
+the dependencies required for a specific task,  replace
+`dev` with one of the following:
+
+    * `tests`: for contributing to the unit test suite
+    * `docs`: for maintaining and building documentation
 
 more detailed explanations on how to contribute to this project
 [are available here](
@@ -69,7 +73,9 @@ https://gitlab.com/ae-group/ae_deep/-/blob/develop/CONTRIBUTING.rst)
 
 ## namespace portion documentation
 
-information on the features and usage of this portion are available at
+the documentation of the source code of this portion is available at
 [ReadTheDocs](
 https://ae.readthedocs.io/en/latest/_autosummary/ae.deep.html
 "ae_deep documentation").
+
+

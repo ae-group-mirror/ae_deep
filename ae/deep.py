@@ -285,9 +285,9 @@ def deep_replace(obj: Any,  # pylint: disable=too-many-arguments,too-many-positi
 
     :param value_filter:        called for each sub-item/-attribute of the data structure specified by
                                 :paramref:`~deep_replace.obj` argument.
-                                return True for items/attributes values to be filtered out. by default empty values,
-                                excluded values (see :data:`EXCLUDED_VALUE_TYPES`) and already scanned objects will be
-                                filtered out (see default callable :func:`flattest_value_filter`).
+                                return True for items/attributes values to be filtered out. by default empty and
+                                empty values, and already scanned objects will be filtered out (see default callable
+                                :func:`flattest_value_filter`).
 
     :param obj_keys:            used (internally only) to pass the parent data-struct path in recursive calls.
 
@@ -356,10 +356,11 @@ def deep_search(obj: Any, found: ObjCheckCallable,  # pylint: disable=too-many-a
                                 attribute/key names starting with an underscore character will be filtered out
                                 (see default callable :func:`deepest_key_filter`).
 
-    :param value_filter:        called for each sub-item/-attribute of the data structure specified by :paramref:`obj`.
-                                return True for items/attributes values to be filtered out. by default empty values,
-                                excluded values (see :data:`EXCLUDED_VALUE_TYPES`) and already scanned objects will be
-                                filtered out (see default callable :func:`deepest_value_filter`).
+    :param value_filter:        called for each sub-item/-attribute of the data structure specified by
+                                :paramref:`~deep_replace.obj` argument.
+                                return True for items/attributes values to be filtered out. by default empty and
+                                empty values, and already scanned objects will be filtered out (see default callable
+                                :func:`flattest_value_filter`).
 
     :param obj_keys:            used (internally only) to pass the parent data-struct path in recursive calls.
 
@@ -405,10 +406,11 @@ def deep_update(obj: Any, updating_obj: Any,  # pylint: disable=too-many-argumen
                                 attribute/key names starting with an underscore character will be filtered out
                                 (see default callable :func:`flattest_key_filter`).
 
-    :param value_filter:        called for each sub-item/-attribute of the data structure specified by :paramref:`obj`.
-                                return True for items/attributes values to be filtered out. by default empty values,
-                                excluded values (see :data:`EXCLUDED_VALUE_TYPES`) and already scanned objects will be
-                                filtered out (see default callable :func:`flattest_value_filter`).
+    :param value_filter:        called for each sub-item/-attribute of the data structure specified by
+                                :paramref:`~deep_replace.obj` argument.
+                                return True for items/attributes values to be filtered out. by default empty and
+                                empty values, and already scanned objects will be filtered out (see default callable
+                                :func:`flattest_value_filter`).
 
     :param obj_keys:            used (internally only) to pass the parent data-struct path in recursive calls.
     """

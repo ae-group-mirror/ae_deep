@@ -68,7 +68,6 @@ the fields ``city``, ``first_name`` and the items ``0`` and ``1`` of ``member_ho
     ...         ]
     ...     }
     ... }
-    True
 
 
 referencing a deep data object
@@ -145,8 +144,8 @@ for multiple/bulk changes use the function :func:`deep_replace`, which is traver
 the function :func:`deep_update` merges two deep data structures.
 
 to wipe any node/leaf from a deep data structure use the function :func:`pop_object`, which returns the old/removed
-node, item or attribute value. another option to remove objects from a data structure is to use :func:`deep_update`
-with data:`~ae.base.UNSET` values in its :paramref:`~deep_update.updating_obj` argument.
+node, item or attribute value. another option to remove objects from a data structure is to call :func:`deep_update`
+and specify the value data:`~ae.base.UNSET` in its :paramref:`~deep_update.updating_obj` argument.
 
 more details you find in the respective docstring of these functions.
 """
@@ -160,7 +159,7 @@ from typing import Any, cast
 from ae.base import UNSET                                                           # type: ignore
 
 
-__version__ = '0.3.14'
+__version__ = '0.3.15'
 
 
 DataLeafTypesType = tuple[type, ...]                        #: list/tuple of types of deep data leaves
@@ -616,7 +615,7 @@ def object_items(obj: Any,
         for key in dir(obj):                                # treat object attribute name as dict key
             try:
                 items.append((key, getattr(obj, key)))
-            except (AttributeError, IndexError, Exception):         # pylint: disable=broad-except # pragma: no cover
+            except (AttributeError, IndexError, Exception):         # pylint: disable=broad-except
                 # ignore read-only attributes (e.g. kivy.graphics.vertex_instructions.Line.bezier)
                 # and generator-index (kivy.graphics.context_instructions.PopMatrix.stack.__get__)
                 pass

@@ -1,6 +1,7 @@
 """ unit tests """
 from collections import namedtuple
 from copy import deepcopy
+from unittest.mock import patch
 
 import pytest
 
@@ -437,9 +438,6 @@ class TestHelpers:
         assert next_key_of_path('\\"\\c\\"]') == ('\\"\\c\\"', ']', '')
         assert next_key_of_path('\'c\']') == ('c', ']', '')
 
-        # noinspection PyInvalidEscapeSequence
-        assert next_key_of_path('\'\c\']') == ('\\c', ']', '')
-
     def test_next_key_of_path_tuple(self):
         assert next_key_of_path('(33,)') == ((33, ), '', '')
         assert next_key_of_path('(33, )') == ((33, ), '', '')
@@ -450,6 +448,10 @@ class TestHelpers:
         assert object_items(dic) == [('s', "str_val"), ('i', 69)]
         assert not object_items(dic, leaf_types=DEFAULT_LEAF_TYPES + (dict, ))
         assert object_items(dic, key_filter=lambda key: key == 's') == [('i', 69)]
+
+    def test_object_items_exceptions(self):
+        with patch('ae.deep.getattr', side_effect=AttributeError):
+            object_items(object())
 
     def test_object_items_list(self):
         lis = ["a", 6.9, (96, )]

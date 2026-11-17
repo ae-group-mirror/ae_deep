@@ -1,6 +1,7 @@
 """ unit tests """
 from collections import namedtuple
 from copy import deepcopy
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -16,8 +17,8 @@ from ae.deep import (
 class TestHelpers:
     def test_deepest_key_filter_arg_types(self):
         assert not deepest_key_filter(1)            # int arg (e.g. for tuple/list/dict index/key)
-        assert not deepest_key_filter((1, 'b', ))   # tuple arg
-        assert not deepest_key_filter('abc')        # str arg
+        assert not deepest_key_filter((1, "b", ))   # tuple arg
+        assert not deepest_key_filter("abc")        # str arg
         # noinspection PyTypeChecker
         assert not deepest_key_filter(None)         # even None
 
@@ -61,13 +62,13 @@ class TestHelpers:
         tst_cls = _TestClass()
 
         assert deepest_value_filter(str_obj, [(str_obj, 0)])
-        assert deepest_value_filter(tst_cls, [(tst_cls, 'attr')])
-        assert deepest_value_filter(tst_cls, [(tst_cls, 'attr'), (str_obj, 1)])
+        assert deepest_value_filter(tst_cls, [(tst_cls, "attr")])
+        assert deepest_value_filter(tst_cls, [(tst_cls, "attr"), (str_obj, 1)])
 
     def test_flattest_key_filter(self):
         assert not flattest_key_filter(1)            # int arg (e.g. for tuple/list/dict index/key)
-        assert not flattest_key_filter((1, 'b', ))   # tuple arg
-        assert not flattest_key_filter('abc')        # str arg
+        assert not flattest_key_filter((1, "b", ))   # tuple arg
+        assert not flattest_key_filter("abc")        # str arg
         # noinspection PyTypeChecker
         assert not flattest_key_filter(None)         # even None
 
@@ -90,26 +91,26 @@ class TestHelpers:
         tst_cls = _TestClass()
 
         assert flattest_value_filter(str_obj, [(str_obj, 0)])
-        assert flattest_value_filter(tst_cls, [(tst_cls, 'attr')])
-        assert flattest_value_filter(tst_cls, [(tst_cls, 'attr'), (str_obj, 1)])
+        assert flattest_value_filter(tst_cls, [(tst_cls, "attr")])
+        assert flattest_value_filter(tst_cls, [(tst_cls, "attr"), (str_obj, 1)])
 
     def test_key_list_object_data(self):
         assert key_list_object([]) is UNSET
-        assert key_list_object([({}, 'any not existing key')]) is UNSET
+        assert key_list_object([({}, "any not existing key")]) is UNSET
 
-        dic = {'69': "str_key_val", 69: "int_key_val", 't': (1, "234", 6.9)}
-        assert key_list_object([(dic, '69')]) == "str_key_val"
+        dic = {'69': 'str_key_val', 69: 'int_key_val', 't': (1, '234', 6.9)}
+        assert key_list_object([(dic, '69')]) == 'str_key_val'
         assert key_list_object([(dic, 69)]) == "int_key_val"
 
         assert key_list_object([(dic, 't'), (dic['t'], 0)]) == 1
-        assert key_list_object([(dic, 't'), (dic['t'], 1)]) == "234"
+        assert key_list_object([(dic, 't'), (dic['t'], 1)]) == '234'
         assert key_list_object([(dic, 't'), (dic['t'], 2)]) == 6.9
 
-        assert key_list_object([(dic, 't'), (dic['t'], 1), (dic['t'][1], 1)]) == "3"
+        assert key_list_object([(dic, 't'), (dic['t'], 1), (dic['t'][1], 1)]) == '234'[1]
 
     def test_key_list_object_exception(self):
         with pytest.raises(TypeError):
-            key_list_object([([], 'any invalid key')])
+            key_list_object([([], "any invalid key")])
         with pytest.raises(ValueError):
             key_list_object([([], )])   # type: ignore
 
@@ -117,181 +118,181 @@ class TestHelpers:
         dic = {}
 
         assert 123 not in dic
-        assert key_path_object(dic, '[123]', new_value="int_key_val") is UNSET
-        assert key_path_object(dic, '[123]') == "int_key_val"
-        assert key_path_object(dic, '123') == "int_key_val"
+        assert key_path_object(dic, "[123]", new_value='int_key_val') is UNSET
         assert 123 in dic
+        assert key_path_object(dic, "[123]") == 'int_key_val'
+        assert key_path_object(dic, "123") == 'int_key_val'
 
-        assert "123" not in dic
-        assert key_path_object(dic, '["123"]', new_value="str_key_val") is UNSET
-        assert key_path_object(dic, '["123"]') == "str_key_val"
-        assert key_path_object(dic, '123') == "int_key_val"   # !!!!
-        assert "123" in dic
+        assert '123' not in dic
+        assert key_path_object(dic, "['123']", new_value='str_key_val') is UNSET
+        assert '123' in dic
+        assert key_path_object(dic, "['123']") == 'str_key_val'
+        assert key_path_object(dic, '123') == 'int_key_val'
 
-        assert (1, "2") not in dic
-        assert key_path_object(dic, '[(1, "2")]', new_value="tuple_key_val") is UNSET
-        assert key_path_object(dic, '[(1, "2")]') == "tuple_key_val"
-        assert (1, "2") in dic
+        assert (1, '2') not in dic
+        assert key_path_object(dic, "[(1, '2')]", new_value='tuple_key_val') is UNSET
+        assert (1, '2') in dic
+        assert key_path_object(dic, "[(1, '2')]") == 'tuple_key_val'
 
-        deeper_dic = {'deeper_key': "deep_val"}
+        deeper_dic = {'deeper_key': 'deep_val'}
         dic = {'key.with.sep': deeper_dic, 'key.with[sep]': deeper_dic}
         assert key_path_object(dic, "key.with.sep") == deeper_dic
-        assert key_path_object(dic, "key.with.sep.deeper_key") == "deep_val"
-        assert key_path_object(dic, "key.with.sep[deeper_key]") == "deep_val"
+        assert key_path_object(dic, "key.with.sep." + 'deeper_key') == 'deep_val'
+        assert key_path_object(dic, "key.with.sep[" + 'deeper_key' + "]") == 'deep_val'
         assert key_path_object(dic, "key.with[sep]") == deeper_dic
-        assert key_path_object(dic, "key.with[sep].deeper_key") == "deep_val"
-        assert key_path_object(dic, "key.with[sep][deeper_key]") == "deep_val"
+        assert key_path_object(dic, "key.with[sep]." + 'deeper_key') == 'deep_val'
+        assert key_path_object(dic, "key.with[sep][" + 'deeper_key' + "]") == 'deep_val'
+
+    def test_key_path_object_distinguish_int_str_key(self):
+        dic = {'69': 'str_key_val', 6_9: 'int_key_val'}
+        assert key_path_object(dic, "'69'") == 'str_key_val'
+        assert key_path_object(dic, "6_9") == 'int_key_val'
+        assert key_path_object(dic, "69") == 'int_key_val'
 
     def test_key_path_object_docstring_example(self):
         class ClassA:
             """ child test class """
-            str_attr_name_a = "a_attr_val"
-            dict_attr = {'a_str_key': 3, 999: "value_with_int_key", '999': "..str_key"}
+            str_attr_name_a = 'a_attr_val'
+            dict_attr = {'a_str_key': 3_3_3, 9_9_9: 'value_with_int_key', '9_9_9': '..str_key'}
 
         class ClassB:
             """ root test class """
-            str_attr_name_b = "b_b_b_b_b"
+            str_attr_name_b = 'b_b_b_b_b'
             b_obj = ClassA()
 
         obj = ClassB()
-        assert key_path_object(obj, 'str_attr_name_b') == "b_b_b_b_b"
-        assert key_path_object(obj, 'b_obj.str_attr_name_a') == "a_attr_val"
-        assert key_path_object(obj, 'b_obj.str_attr_name_a.5') == "r"  # 6th char of "a_attr_val"
-        assert key_path_object(obj, 'b_obj.dict_attr.a_str_key') == 3
+        assert key_path_object(obj, 'str_attr_name_b') == 'b_b_b_b_b'
+        assert key_path_object(obj, 'b_obj.str_attr_name_a') == 'a_attr_val'
+        assert key_path_object(obj, 'b_obj.str_attr_name_a.5') == 'r' == 'a_attr_val'[5]  # 6th char of "a_attr_val"
+        assert key_path_object(obj, 'b_obj.dict_attr.a_str_key') == 3_3_3 == 333
 
-        assert key_path_object(obj, 'b_obj.dict_attr[999]') == "value_with_int_key"
-        assert key_path_object(obj, 'b_obj.dict_attr["999"]') == "..str_key"
-        assert key_path_object(obj, 'b_obj.dict_attr["a_str_key"]') == 3
-        assert key_path_object(obj, 'b_obj.dict_attr[\'a_str_key\']') == 3
+        assert key_path_object(obj, "b_obj.dict_attr[9_9_9]") == 'value_with_int_key'
+        assert key_path_object(obj, "b_obj.dict_attr['9_9_9']") == '..str_key'
+        assert key_path_object(obj, "b_obj.dict_attr['a_str_key']") == 3_3_3
 
-        assert key_path_object(obj, 'b_obj.dict_attr[a_str_key]') == 3
-
-    def test_key_path_object_distinguish_int_str_key(self):
-        dic = {'69': "str_key_val", 69: "int_key_val"}
-        assert key_path_object(dic, "'69'") == "str_key_val"
-        assert key_path_object(dic, "69") == "int_key_val"
+        assert key_path_object(obj, "b_obj.dict_attr[a_str_key]") == 3_3_3
 
     def test_key_path_object_item_value(self):
         class TstA:
             """ test class """
-            att = "a_att_value"
-            dic = dict(a_key="a_dict_val", a_dict={'a_key': "a_a_dict_val", 33: "a_a_num_key_val"})
-            lis = ["a_list_val"]
+            att = 'a_att_value'
+            dic = {'a_key': 'a_dict_val', 'a_dict': {'a_key': 'a_a_dict_val', 33: 'a_a_num_key_val'}}
+            lis = ['a_list_val']
 
         class TstB:
             """ test class """
-            att = "b_att_value"
+            att = 'b_att_value'
             a_att = TstA()
 
         a = TstA()
         b = TstB()
-        c = list((TstA(), b))
+        c = [TstA(), b]
         d = {'a': TstA(), 'b': b, 'c': c, (9,): 'num_tuple_key_val', ('t',): 'str_tuple_key_val'}
 
-        assert key_path_object(a, 'att') == "a_att_value"
+        assert key_path_object(a, 'att') == 'a_att_value'
         assert key_path_object(a, 'att[1]') == "_"
         assert key_path_object(a, 'att.1') == "_"
         assert key_path_object(a, 'att[-1]') == "e"
         assert key_path_object(a, 'att.-1') == "e"
-        assert key_path_object(a, 'dic["a_key"]') == "a_dict_val"
-        assert key_path_object(a, 'dic.a_key') == "a_dict_val"
+        assert key_path_object(a, 'dic["a_key"]') == 'a_dict_val'
+        assert key_path_object(a, 'dic.a_key') == 'a_dict_val'
 
-        assert key_path_object(a, 'dic["a_key"]') == "a_dict_val"
-        assert key_path_object(a, 'dic[a_key]') == "a_dict_val"
-        assert key_path_object(a, 'dic.a_key') == "a_dict_val"
-        assert key_path_object(a, 'dic[\'a_dict\']') == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(a, 'dic["a_dict"]') == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(a, 'dic["a_dict"]["a_key"]') == "a_a_dict_val"
-        assert key_path_object(a, 'dic.a_dict.a_key') == "a_a_dict_val"
-        assert key_path_object(a, 'dic["a_dict"][33]') == "a_a_num_key_val"
-        assert key_path_object(a, 'dic.a_dict.33') == "a_a_num_key_val"
-        assert key_path_object(a, 'lis[0]') == "a_list_val"
-        assert key_path_object(a, 'lis.0') == "a_list_val"
+        assert key_path_object(a, 'dic["a_key"]') == 'a_dict_val'
+        assert key_path_object(a, 'dic[a_key]') == 'a_dict_val'
+        assert key_path_object(a, 'dic.a_key') == 'a_dict_val'
+        assert key_path_object(a, 'dic[\'a_dict\']') == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(a, 'dic["a_dict"]') == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(a, 'dic["a_dict"]["a_key"]') == 'a_a_dict_val'
+        assert key_path_object(a, 'dic.a_dict.a_key') == 'a_a_dict_val'
+        assert key_path_object(a, 'dic["a_dict"][33]') == 'a_a_num_key_val'
+        assert key_path_object(a, 'dic.a_dict.33') == 'a_a_num_key_val'
+        assert key_path_object(a, 'lis[0]') == 'a_list_val'
+        assert key_path_object(a, 'lis.0') == 'a_list_val'
 
-        assert key_path_object(b, 'att') == "b_att_value"
+        assert key_path_object(b, 'att') == 'b_att_value'
         assert isinstance(key_path_object(b, 'a_att'), TstA)
-        assert key_path_object(b, 'a_att.att') == "a_att_value"
+        assert key_path_object(b, 'a_att.att') == 'a_att_value'
         assert key_path_object(b, 'a_att.att[-1]') == "e"
         assert key_path_object(b, 'a_att.att.-1') == "e"
-        assert key_path_object(b, 'a_att.dic["a_key"]') == "a_dict_val"
-        assert key_path_object(b, 'a_att.dic.a_key') == "a_dict_val"
-        assert key_path_object(b, 'a_att.dic["a_dict"]') == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(b, 'a_att.dic.a_dict') == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(b, 'a_att.dic["a_dict"]["a_key"]') == "a_a_dict_val"
-        assert key_path_object(b, 'a_att.dic.a_dict.a_key') == "a_a_dict_val"
-        assert key_path_object(b, 'a_att.dic["a_dict"][33]') == "a_a_num_key_val"
-        assert key_path_object(b, 'a_att.dic.a_dict.33') == "a_a_num_key_val"
-        assert key_path_object(b, 'a_att.lis[0]') == "a_list_val"
-        assert key_path_object(b, 'a_att.lis.0') == "a_list_val"
+        assert key_path_object(b, 'a_att.dic["a_key"]') == 'a_dict_val'
+        assert key_path_object(b, 'a_att.dic.a_key') == 'a_dict_val'
+        assert key_path_object(b, 'a_att.dic["a_dict"]') == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(b, 'a_att.dic.a_dict') == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(b, 'a_att.dic["a_dict"]["a_key"]') == 'a_a_dict_val'
+        assert key_path_object(b, 'a_att.dic.a_dict.a_key') == 'a_a_dict_val'
+        assert key_path_object(b, 'a_att.dic["a_dict"][33]') == 'a_a_num_key_val'
+        assert key_path_object(b, 'a_att.dic.a_dict.33') == 'a_a_num_key_val'
+        assert key_path_object(b, 'a_att.lis[0]') == 'a_list_val'
+        assert key_path_object(b, 'a_att.lis.0') == 'a_list_val'
 
-        assert key_path_object(c, '[0].att') == "a_att_value"
-        assert key_path_object(c, '0].att') == "a_att_value"
-        assert key_path_object(c, '0.att') == "a_att_value"
+        assert key_path_object(c, '[0].att') == 'a_att_value'
+        assert key_path_object(c, '0].att') == 'a_att_value'
+        assert key_path_object(c, '0.att') == 'a_att_value'
         assert isinstance(key_path_object(c, '0]'), TstA)
         assert key_path_object(c, '0].att[-1]') == "e"
-        assert key_path_object(c, '0].dic["a_key"]') == "a_dict_val"
-        assert key_path_object(c, '0].dic["a_dict"]') == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(c, '0].dic["a_dict"]["a_key"]') == "a_a_dict_val"
-        assert key_path_object(c, '0.dic.a_dict.a_key') == "a_a_dict_val"
-        assert key_path_object(c, '0].dic["a_dict"][33]') == "a_a_num_key_val"
-        assert key_path_object(c, '0.dic.a_dict.33') == "a_a_num_key_val"
-        assert key_path_object(c, '0].lis[0]') == "a_list_val"
-        assert key_path_object(c, '0.lis.0') == "a_list_val"
+        assert key_path_object(c, '0].dic["a_key"]') == 'a_dict_val'
+        assert key_path_object(c, '0].dic["a_dict"]') == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(c, '0].dic["a_dict"]["a_key"]') == 'a_a_dict_val'
+        assert key_path_object(c, '0.dic.a_dict.a_key') == 'a_a_dict_val'
+        assert key_path_object(c, '0].dic["a_dict"][33]') == 'a_a_num_key_val'
+        assert key_path_object(c, '0.dic.a_dict.33') == 'a_a_num_key_val'
+        assert key_path_object(c, '0].lis[0]') == 'a_list_val'
+        assert key_path_object(c, '0.lis.0') == 'a_list_val'
 
-        assert key_path_object(c, '1].a_att.att') == "a_att_value"
-        assert key_path_object(c, '1.a_att.att') == "a_att_value"
+        assert key_path_object(c, '1].a_att.att') == 'a_att_value'
+        assert key_path_object(c, '1.a_att.att') == 'a_att_value'
         assert isinstance(key_path_object(c, '1].a_att'), TstA)
         assert isinstance(key_path_object(c, '1.a_att'), TstA)
         assert key_path_object(c, '1].a_att.att[-1]') == "e"
-        assert key_path_object(c, '1].a_att.dic["a_key"]') == "a_dict_val"
-        assert key_path_object(c, '1].a_att.dic["a_dict"]') == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(c, '1].a_att.dic["a_dict"]["a_key"]') == "a_a_dict_val"
-        assert key_path_object(c, '1].a_att.dic[a_dict][a_key]') == "a_a_dict_val"
-        assert key_path_object(c, '1.a_att.dic.a_dict.a_key') == "a_a_dict_val"
-        assert key_path_object(c, '1].a_att.dic[a_dict][33]') == "a_a_num_key_val"
-        assert key_path_object(c, '1.a_att.dic.a_dict.33') == "a_a_num_key_val"
-        assert key_path_object(c, '1].a_att.lis[0]') == "a_list_val"
-        assert key_path_object(c, '1.a_att.lis.0') == "a_list_val"
-        assert key_path_object(c, '1.a_att.lis.0]') == "a_list_val"
+        assert key_path_object(c, '1].a_att.dic["a_key"]') == 'a_dict_val'
+        assert key_path_object(c, '1].a_att.dic["a_dict"]') == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(c, '1].a_att.dic["a_dict"]["a_key"]') == 'a_a_dict_val'
+        assert key_path_object(c, '1].a_att.dic[a_dict][a_key]') == 'a_a_dict_val'
+        assert key_path_object(c, '1.a_att.dic.a_dict.a_key') == 'a_a_dict_val'
+        assert key_path_object(c, '1].a_att.dic[a_dict][33]') == 'a_a_num_key_val'
+        assert key_path_object(c, '1.a_att.dic.a_dict.33') == 'a_a_num_key_val'
+        assert key_path_object(c, '1].a_att.lis[0]') == 'a_list_val'
+        assert key_path_object(c, '1.a_att.lis.0') == 'a_list_val'
+        assert key_path_object(c, '1.a_att.lis.0]') == 'a_list_val'
 
-        assert key_path_object(d, 'a.att') == "a_att_value"
+        assert key_path_object(d, 'a.att') == 'a_att_value'
         assert isinstance(key_path_object(d, 'a'), TstA)
         assert key_path_object(d, 'a.att[-1]') == "e"
-        assert key_path_object(d, 'a.dic.a_key') == "a_dict_val"
-        assert key_path_object(d, "a.dic[a_dict]") == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(d, 'a.dic[a_dict][a_key]') == "a_a_dict_val"
-        assert key_path_object(d, 'a.dic.a_dict.a_key') == "a_a_dict_val"
-        assert key_path_object(d, 'a.dic[a_dict][33]') == "a_a_num_key_val"
-        assert key_path_object(d, 'a.dic.a_dict.33') == "a_a_num_key_val"
-        assert key_path_object(d, '\'a\'].lis[0]') == "a_list_val"
-        assert key_path_object(d, 'a.lis.0') == "a_list_val"
+        assert key_path_object(d, 'a.dic.a_key') == 'a_dict_val'
+        assert key_path_object(d, "a.dic[a_dict]") == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(d, 'a.dic[a_dict][a_key]') == 'a_a_dict_val'
+        assert key_path_object(d, 'a.dic.a_dict.a_key') == 'a_a_dict_val'
+        assert key_path_object(d, 'a.dic[a_dict][33]') == 'a_a_num_key_val'
+        assert key_path_object(d, 'a.dic.a_dict.33') == 'a_a_num_key_val'
+        assert key_path_object(d, '\'a\'].lis[0]') == 'a_list_val'
+        assert key_path_object(d, 'a.lis.0') == 'a_list_val'
 
-        assert key_path_object(d, 'a].att') == "a_att_value"
+        assert key_path_object(d, 'a].att') == 'a_att_value'
         assert isinstance(key_path_object(d, 'a]'), TstA)
         assert key_path_object(d, 'a].att[-1]') == "e"
-        assert key_path_object(d, 'a].dic[a_key]') == "a_dict_val"
-        assert key_path_object(d, 'a].dic[a_dict]') == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(d, 'a].dic[a_dict].a_key') == "a_a_dict_val"
-        assert key_path_object(d, 'a].dic[a_dict].33') == "a_a_num_key_val"
-        assert key_path_object(d, 'a].lis[0]') == "a_list_val"
+        assert key_path_object(d, 'a].dic[a_key]') == 'a_dict_val'
+        assert key_path_object(d, 'a].dic[a_dict]') == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(d, 'a].dic[a_dict].a_key') == 'a_a_dict_val'
+        assert key_path_object(d, 'a].dic[a_dict].33') == 'a_a_num_key_val'
+        assert key_path_object(d, 'a].lis[0]') == 'a_list_val'
 
-        assert key_path_object(d, 'b].att') == "b_att_value"
-        assert key_path_object(d, 'b].a_att.att') == "a_att_value"
+        assert key_path_object(d, 'b].att') == 'b_att_value'
+        assert key_path_object(d, 'b].a_att.att') == 'a_att_value'
         assert key_path_object(d, 'b].a_att.att[-1]') == "e"
-        assert key_path_object(d, 'b].a_att.dic[a_key]') == "a_dict_val"
-        assert key_path_object(d, 'b].a_att.dic[a_dict]') == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(d, 'b].a_att.dic[a_dict][a_key]') == "a_a_dict_val"
-        assert key_path_object(d, 'b].a_att.dic[a_dict][33]') == "a_a_num_key_val"
-        assert key_path_object(d, 'b].a_att.lis[0]') == "a_list_val"
+        assert key_path_object(d, 'b].a_att.dic[a_key]') == 'a_dict_val'
+        assert key_path_object(d, 'b].a_att.dic[a_dict]') == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(d, 'b].a_att.dic[a_dict][a_key]') == 'a_a_dict_val'
+        assert key_path_object(d, 'b].a_att.dic[a_dict][33]') == 'a_a_num_key_val'
+        assert key_path_object(d, 'b].a_att.lis[0]') == 'a_list_val'
 
-        assert key_path_object(d, 'c][0].att') == "a_att_value"
-        assert key_path_object(d, 'c][0].att') == "a_att_value"
+        assert key_path_object(d, 'c][0].att') == 'a_att_value'
+        assert key_path_object(d, 'c][0].att') == 'a_att_value'
         assert key_path_object(d, 'c][0].att[-1]') == "e"
-        assert key_path_object(d, 'c][0].dic[a_key]') == "a_dict_val"
-        assert key_path_object(d, 'c][0].dic[a_dict]') == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(d, 'c][0].dic[a_dict][a_key]') == "a_a_dict_val"
-        assert key_path_object(d, 'c][0].dic[a_dict][33]') == "a_a_num_key_val"
-        assert key_path_object(d, 'c][0].lis[0]') == "a_list_val"
+        assert key_path_object(d, 'c][0].dic[a_key]') == 'a_dict_val'
+        assert key_path_object(d, 'c][0].dic[a_dict]') == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(d, 'c][0].dic[a_dict][a_key]') == 'a_a_dict_val'
+        assert key_path_object(d, 'c][0].dic[a_dict][33]') == 'a_a_num_key_val'
+        assert key_path_object(d, 'c][0].lis[0]') == 'a_list_val'
 
         assert key_path_object(d, '(9,)') == "num_tuple_key_val"
         assert key_path_object(d, '("t",)') == "str_tuple_key_val"
@@ -305,79 +306,82 @@ class TestHelpers:
     def test_key_path_object_set(self):
         class TstA:
             """ test class """
-            att = "a_att_value"
-            dic = dict(a_key="a_dict_val", a_dict={'a_key': "a_a_dict_val", 33: "a_a_num_key_val"})
-            lis = ["a_list_val"]
+            att = 'a_att_value'
+            dic = {'a_key': 'a_dict_val', 'a_dict': {'a_key': 'a_a_dict_val', 33: 'a_a_num_key_val'}}
+            lis = ['a_list_val']
             tup = (0, "1", 2.3)
 
         class TstB:
             """ test class """
-            att = "b_att_value"
+            att = 'b_att_value'
             a_att = TstA()
 
-        a = TstA()
-        b = TstB()
+        a_t = TstA()
+        b_t = TstB()
 
-        assert key_path_object(a, 'att', new_value="a_att_new_value") == "a_att_value"
-        assert key_path_object(a, 'att') == "a_att_new_value"
+        assert key_path_object(a_t, 'att.1', new_value='-') == '_'
 
-        assert key_path_object(a, 'dic[\'a_key\']', new_value="a_dict_new_val") == "a_dict_val"
-        assert key_path_object(a, 'dic["a_key"]') == "a_dict_new_val"
-        assert key_path_object(a, 'dic.a_key') == "a_dict_new_val"
+        assert key_path_object(a_t, 'att', new_value='a_att_new_value') == 'a-att_value'
+        assert key_path_object(a_t, 'att') == 'a_att_new_value'
 
-        assert 99 not in a.dic
-        assert key_path_object(a, 'dic[99]', new_value="new_dict_item_with_int_key") is UNSET
-        assert key_path_object(a, 'dic.99') == "new_dict_item_with_int_key"
+        assert key_path_object(a_t, 'dic[\'a_key\']', new_value='a_dict_new_val') == 'a_dict_val'
+        assert key_path_object(a_t, "dic['a_key']") == 'a_dict_new_val'
+        assert key_path_object(a_t, 'dic.a_key') == 'a_dict_new_val'
 
-        assert key_path_object(a, 'dic["a_dict"]', {'a_key': "a_a_dict_new_val", 33: "a_a_num_key_val"}
-                               ) == {33: "a_a_num_key_val", 'a_key': "a_a_dict_val"}
-        assert key_path_object(a, 'dic["a_dict"]["a_key"]', new_value="a_a_dict_newer_val") == "a_a_dict_new_val"
-        assert key_path_object(a, 'dic["a_dict"]["a_key"]') == "a_a_dict_newer_val"
-        assert key_path_object(b, 'a_att.dic["a_dict"]["a_key"]') == "a_a_dict_newer_val"
+        assert 99 not in a_t.dic
+        assert key_path_object(a_t, 'dic[99]', new_value='new_dict_item_with_int_key') is UNSET
+        assert key_path_object(a_t, 'dic.99') == 'new_dict_item_with_int_key'
 
-        assert key_path_object(a, 'dic["a_dict"][33]', new_value="new_dict_with_int_key") == "a_a_num_key_val"
-        assert key_path_object(a, 'dic["a_dict"][33]') == "new_dict_with_int_key"
+        assert key_path_object(a_t, "dic['a_dict']", {'a_key': 'a_a_dict_new_val', 33: 'a_a_num_key_val'}
+                               ) == {33: 'a_a_num_key_val', 'a_key': 'a_a_dict_val'}
+        assert key_path_object(a_t, "dic['a_dict']['a_key']", new_value='a_a_dict_newer_val') == 'a_a_dict_new_val'
+        assert key_path_object(a_t, "dic['a_dict']['a_key']") == 'a_a_dict_newer_val'
+        assert key_path_object(b_t, "a_att.dic['a_dict']['a_key']") == 'a_a_dict_newer_val'
 
-        assert key_path_object(a, 'lis[0]', new_value="a_list_new_val") == "a_list_val"
-        assert key_path_object(a, 'lis[0]') == "a_list_new_val"
-        assert key_path_object(b, 'a_att.lis[0]') == "a_list_new_val"
+        assert key_path_object(a_t, "dic['a_dict'][33]", new_value='new_dict_with_int_key') == 'a_a_num_key_val'
+        assert key_path_object(a_t, "dic['a_dict'][33]") == 'new_dict_with_int_key'
 
-        assert key_path_object(b, 'att', new_value="b_att_new_value") == "b_att_value"
-        assert key_path_object(b, 'att') == "b_att_new_value"
+        assert key_path_object(a_t, 'lis[0]', new_value='a_list_new_val') == 'a_list_val'
+        assert key_path_object(a_t, 'lis[0]') == 'a_list_new_val'
+        assert key_path_object(b_t, 'a_att.lis[0]') == 'a_list_new_val'
 
-        assert key_path_object(b, 'a_att.att', new_value="xyz") == "a_att_value"
-        assert key_path_object(b, 'a_att.att') == "xyz"
-        assert key_path_object(b, 'a_att.att[-1]') == "z"
+        assert key_path_object(b_t, 'att', new_value='b_att_new_value') == 'b_att_value'
+        assert key_path_object(b_t, 'att') == 'b_att_new_value'
+
+        assert key_path_object(b_t, 'a_att.att', new_value="xyz") == 'a_att_value'
+        assert key_path_object(b_t, 'a_att.att') == "xyz"
+        assert key_path_object(b_t, 'a_att.att[-1]') == "z"
 
     def test_key_path_object_set_immutable(self):
-        str_val = "bCd"
-        deeper_tup = ("a", "b", "c")
-        tup_val = (0, "1", 2.3, deeper_tup)
-        dic: dict = dict(str_item=str_val, tup_item=tup_val)
+        str_val = 'bCd'
+        deeper_tup = ('a', 'b', 'c')
+        tup_val = (0, '1', 2.3, deeper_tup)
+        dic: dict = {'str_item': str_val, 'tup_item': tup_val}
 
         class Tst:
             """ test class """
             dic_att = dic
         obj = Tst()
 
-        assert key_path_object(obj, 'dic_att[str_item][2]') == "d"
-        assert key_path_object(obj, 'dic_att["str_item"][2]', new_value="D") == str_val[2] == "d"
-        assert obj.dic_att['str_item'][2] == "d"            # unchanged because single char in str cannot be changed
+        assert key_path_object(obj, 'dic_att[str_item][2]') == 'd'
+        assert key_path_object(obj, 'dic_att["str_item"][2]', new_value='D') == str_val[2] == 'd'
+        assert obj.dic_att['str_item'][2] == 'D'
 
-        assert key_path_object(obj, 'dic_att[tup_item][3][0]', new_value=0) == "a"
+        assert key_path_object(obj, 'dic_att[tup_item][3][0]', new_value=0) == 'a'
         assert obj.dic_att['tup_item'][3][0] == 0
         assert key_path_object(obj, 'dic_att.tup_item][3][0]') == 0
 
-        assert key_path_object(dic, 'str_item[0]', new_value="B") == "b"
-        assert key_path_object(dic, 'str_item[0]') == "b"   # unchanged because single char in str cannot be changed
-        assert key_path_object(dic, 'str_item', new_value="changed_string") == str_val
-        assert dic['str_item'] == "changed_string"
+        assert key_path_object(dic, 'str_item[0]', new_value='B') == 'b'
+        assert key_path_object(dic, 'str_item[0]') == 'B'
+        assert key_path_object(dic, 'str_item', new_value='changed_string') == 'BCD'
+        assert dic['str_item'] == 'changed_string'
 
-        assert key_path_object(dic, 'tup_item[1]', new_value=1) == "1"
+        assert key_path_object(dic, 'tup_item[1]', new_value=1) == '1'
         assert dic['tup_item'][1] == 1
-        assert key_path_object(dic, 'tup_item][1]') == 1
 
-        assert key_path_object(dic, 'tup_item[3][1]', new_value=1) == "b"
+        assert key_path_object(dic, 'tup_item][1]') == 1    # ignoring extra closing square bracket
+
+        assert key_path_object(dic, 'tup_item[3][1]', new_value=1) == 'b'
         assert dic['tup_item'][3][1] == 1
         assert key_path_object(dic, 'tup_item][3][1]') == 1
 
@@ -450,7 +454,7 @@ class TestHelpers:
         assert object_items(dic, key_filter=lambda key: key == 's') == [('i', 69)]
 
     def test_object_items_exceptions(self):
-        with patch('ae.deep.getattr', side_effect=AttributeError):
+        with patch('ae.deep.getattr', create=True, side_effect=AttributeError):
             object_items(object())
 
     def test_object_items_list(self):
@@ -461,13 +465,11 @@ class TestHelpers:
 
     def test_object_items_namedtuple(self):
         NamTup = namedtuple("TestInt", ['att1', 'att2'])
-        # noinspection PyArgumentList
         nam_tup = NamTup(1, att2=2)
         assert object_items(nam_tup) == [(0, 1), (1, 2)]
         assert not object_items(nam_tup, leaf_types=DEFAULT_LEAF_TYPES + (NamTup, ))
 
         NamTup = namedtuple("TestChar", "att1 att2")
-        # noinspection PyArgumentList
         nam_tup = NamTup("a", "b")
         assert object_items(nam_tup) == [(0, "a"), (1, "b")]
         assert not object_items(nam_tup, leaf_types=DEFAULT_LEAF_TYPES + (NamTup, ))
@@ -504,8 +506,11 @@ class TestHelpers:
         assert not object_items(tup, leaf_types=DEFAULT_LEAF_TYPES + (tuple, ))
 
     def test_pop_object_dict(self):
-        sub_dict = {'str_key': "str_val", 69: 96, 6.9: 9.6, (33, ): (99, )}
-        dic = {'sub_dict': sub_dict}
+        sub_dict = {'str_key': "str_val",
+                    69: 96,
+                    6.9: 9.6,
+                    (33, ): (99, )}
+        dic: dict[Any, Any] = {'sub_dict': sub_dict}
 
         assert pop_object([(dic, 'sub_dict'), (sub_dict, 69)]) == 96
         assert 69 not in sub_dict
@@ -515,6 +520,7 @@ class TestHelpers:
         assert sub_dict['str_key'] == "tr_val"
         assert 'sub_dict' in dic
 
+        assert 99 in dic['sub_dict'][(33, )]
         assert pop_object([(dic, 'sub_dict'), (dic['sub_dict'], (33, )), (dic['sub_dict'][(33, )], 0)]) == 99
         assert 99 not in dic['sub_dict'][(33, )]
         assert dic['sub_dict'][(33, )] == ()
@@ -578,20 +584,27 @@ class TestHelpers:
         lst = [str_val]
 
         assert pop_object([(lst, 0), (lst[0], 1)]) == "e"
-        assert lst == ["tst"]
+        assert lst == ['tst']
+
+    def test_pop_object_tuple(self):
+        tup = ('tst', 9, 6.9)
+        lst = [tup]
+
+        assert pop_object([(lst, 0), (lst[0], 1)]) == 9
+        assert lst == [('tst', 6.9)]
 
     def test_replace_object_dict(self):
         str_val = "bCd"
         deeper_tup = ('a', 'b', 3)
         tup_val = (0, "1", 2.3, deeper_tup)
-        dic: dict = dict(str_item=str_val, tup_item=tup_val)
+        dic: dict = {'str_item': str_val, 'tup_item': tup_val}
 
         assert dic['str_item'] == str_val
         replace_object([(dic, 'str_item')], str_val)
         assert dic['str_item'] == str_val
 
         replace_object([(dic, 'str_item'), (str_val, 0)], "_")
-        assert dic['str_item'] == str_val       # unchanged because char in str cannot be changed
+        assert dic['str_item'] == '_Cd'
 
         assert dic['tup_item'][1] == "1"
         assert dic['tup_item'][3][2] == 3
@@ -629,10 +642,10 @@ class TestHelpers:
             replace_object([(tup, 0)], "_")
 
         # on wrong tuple index no IndexError will be raised
-        replace_object([(dic, 'tup_key'), (tup, 0), (tup[0], 3), (sub_tup[3], 999)], "new_val")
-        assert dic['tup_key'][0][3] == (33, 99, "new_val")
-        replace_object([(dic, 'tup_key'), (tup, 0), (tup[0], 3), (sub_tup[3], -1)], "new_val")
-        assert dic['tup_key'][0][3] == (33, "new_val", 33, 99)
+        replace_object([(dic, 'tup_key'), (tup, 0), (tup[0], 3), (sub_tup[3], 999)], 'new_val')
+        assert dic['tup_key'][0][3] == (33, 99, 'new_val')
+        replace_object([(dic, 'tup_key'), (tup, 0), (tup[0], 3), (sub_tup[3], -1)], 'new_val')
+        assert dic['tup_key'][0][3] == (33, 'new_val', 33, 99)
 
     def test_replace_object_list(self):
         str_val = "bCd"
@@ -646,11 +659,11 @@ class TestHelpers:
         replace_object([(lst, 2), (tup_val, 3), (deeper_tup, 2)], 6)
         assert lst[2][3][2] == 6
 
-        replace_object([(lst, 2)], "new_string")
-        assert lst[2] == "new_string"
+        replace_object([(lst, 2)], 'new_string')
+        assert lst[2] == 'new_string'
 
         replace_object([(lst, 1), (str_val, 0)], "_")
-        assert lst[1][0] == "b"     # unchanged because char in str cannot be replaced
+        assert lst[1][0] == "_"
 
     def test_replace_object_obj(self):
         str_val = "bCd"
@@ -659,8 +672,8 @@ class TestHelpers:
 
         class Tst:
             """ test object """
-            str_att = str_val
-            tup_att = tup_val
+            str_att: str = str_val
+            tup_att: Any = tup_val
         obj = Tst()
 
         assert obj.tup_att[1] == "1"
@@ -673,26 +686,54 @@ class TestHelpers:
         replace_object([(obj, 'tup_att')], "new_string")
         assert obj.tup_att == "new_string"
 
-        replace_object([(obj, 'str_att'), (str_val, 2)], "_")
-        assert obj.str_att[2] == "d"        # unchanged because character in str type cannot be replaced
+        replace_object([(obj, 'str_att'), (str_val, 2)], '_')
+        assert obj.str_att[2] == '_'
+        assert obj.str_att == 'bC_'
+
+        replace_object([(obj, 'str_att'), (str_val, 1)], '__')
+        assert obj.str_att[1] == '_'
+        assert obj.str_att == 'b__d'
+
+    def test_replace_object_str(self):
+        tst = 'tst'
+        lst = [tst]
+
+        assert replace_object([(lst, 0), (lst[0], 1)], 'X') == 1
+        assert lst == ['tXt']
+
+    def test_replace_object_str_in_tuple(self):
+        tup = (True, 'tst', 6.9)
+        lst = [tup]
+
+        assert replace_object([(lst, 0), (lst[0], 1), (lst[0][1], 2)], 'X') == 2    # 1st immutable is 2 above
+        assert lst[0][1][2] == 'X'
+        assert lst == [(True, 'tsX', 6.9)]
+
+    def test_replace_object_str_in_tuple_in_tuple(self):
+        tup = (False, True, 'tst', 6.9)
+        tu2 = (None, tup, None)
+        lst = [tu2]
+
+        assert replace_object([(lst, 0), (lst[0], 1), (lst[0][1], 2), (lst[0][1][2], 3)], 'X') == 3
+        assert lst[0][1][2][3] == 'X'
+        assert lst == [(None, (False, True, 'tstX', 6.9), None)]
+
+    def test_replace_object_tuple(self):
+        tup = ('tst', 9, 6.9)
+        lst = [tup]
+
+        assert replace_object([(lst, 0), (lst[0], 1)], 'rep-tst') == 1
+        assert lst == [('tst', 'rep-tst', 6.9)]
 
 
 class TestDeepFunctions:
     def test_deep_replace_data(self):
         sub_lst = ["b_list_0", "search_index_value", "search_key_value3"]
-        data: dict = dict(
-            a_str="a_str",
-            a_list=["a_list_0", "search_index_value", 2, dict(a_list_a="a_list_a_str", search_key="search_key_value1")],
-            a_dict=dict(
-                b_str="b_str",
-                b_dict=dict(
-                    c_tuple=("1st_tuple_value", "search_value", "3rd_tuple_value", 3,),
-                    c_str="c str",
-                    search_key="search_key_value2",
-                ),
-                b_list=sub_lst,
-            )
-        )
+        data: dict = {'a_str': "a_str", 'a_list': ["a_list_0", "search_index_value", 2,
+                                                   {'a_list_a': "a_list_a_str", 'search_key': "search_key_value1"}],
+                      'a_dict': {'b_str': "b_str", 'b_dict': {
+                          'c_tuple': ("1st_tuple_value", "search_value", "3rd_tuple_value", 3,), 'c_str': "c str",
+                          'search_key': "search_key_value2"}, 'b_list': sub_lst}}
 
         deep_replace(data, lambda _p, _k, v: "replaced_value" if v == "search_value" else UNSET)
         assert data['a_dict']['b_dict']['c_tuple'][1] == "replaced_value"
@@ -744,7 +785,7 @@ class TestDeepFunctions:
         tup_val = (3, "0120", 1, deeper_tup)
         # noinspection PyTypeChecker
         tst_list: str | tuple = [str_val, tup_val]
-        tst_dict = dict(l=tst_list)
+        tst_dict = {'l': tst_list}
 
         # data keeps unchanged because str type not gets searched deeper onto char level
         deep_replace(tst_dict, lambda _p, k, v: "d" if v == "b" and k == 3 else UNSET)
@@ -777,7 +818,7 @@ class TestDeepFunctions:
     def test_deep_search_dict(self):
         str_val = "bCd"
         tup_val = (0, str_val, 2.3)
-        dic = dict(str_item=str_val, tup_item=tup_val)
+        dic = {'str_item': str_val, 'tup_item': tup_val}
 
         obj_key = [(dic, 'str_item')]
         assert deep_search(dic, lambda p, k, v: p == obj_key) == \
@@ -815,7 +856,7 @@ class TestDeepFunctions:
 
         class Tst:
             """ test class """
-            dic_att = dict(str_item=str_val, tup_item=tup_val)
+            dic_att = {'str_item': str_val, 'tup_item': tup_val}
 
         obj = Tst()
 
@@ -838,7 +879,7 @@ class TestDeepFunctions:
         assert deep_search(str_val, lambda p, k, v: True, leaf_types=(bytes, int, float, type)) == \
                [([('bCd', 0)], 0, 'b'), ([('bCd', 1)], 1, 'C'), ([('bCd', 2)], 2, 'd')]
 
-        dic = dict(str_item=str_val, str_item2=str_val)
+        dic = {'str_item': str_val, 'str_item2': str_val}
         assert deep_search(dic, lambda p, k, v: True, leaf_types=(bytes, int, float, type)) == \
                [([({'str_item': 'bCd', 'str_item2': 'bCd'}, 'str_item')], 'str_item', 'bCd'),
                 ([({'str_item': 'bCd', 'str_item2': 'bCd'}, 'str_item2')], 'str_item2', 'bCd'),
